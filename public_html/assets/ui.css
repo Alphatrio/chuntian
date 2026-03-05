@@ -1,0 +1,294 @@
+/* ==========================================================================
+   Chun Tian — UI.css (charte graphique)
+   Couleurs : beige #E6D5B8 / noir #323232
+   Polices  : Titres = "Fredericka the Great", Boutons = Avenir, Texte = Futura Light
+   ========================================================================== */
+
+/* Google Font pour les titres */
+@import url('https://fonts.googleapis.com/css2?family=Fredericka+the+Great&display=swap');
+
+/* Polices locales (fallback élégants) */
+@font-face{font-family:"Avenir";src:local("Avenir"),local("Avenir Next");font-display:swap}
+@font-face{font-family:"Futura Light";src:local("Futura-Light"),local("Futura"),local("Futura PT");font-weight:300;font-style:normal;font-display:swap}
+
+/* ========================================================================== */
+/* Variables                                                                 */
+/* ========================================================================== */
+:root{
+  --brand-beige:#E6D5B8;
+  --brand-ink:#323232;
+  --ink-muted:#6b7280;
+  --line:#e5e7eb;
+
+  --bg:var(--brand-beige);
+  --text:var(--brand-ink);
+  --card:#fff;
+
+  --radius:16px;
+  --radius-lg:22px;
+
+  --shadow:0 8px 24px rgba(0,0,0,.06);
+  --shadow-card:0 24px 60px rgba(0,0,0,.18);
+
+  --fs-base:16px;
+  --fs-sm:14px;
+  --fs-lg:18px;
+  --fs-xl:22px;
+
+  --sale:#ef4444;
+}
+
+/* ========================================================================== */
+/* Reset & base                                                              */
+/* ========================================================================== */
+*{box-sizing:border-box}
+html,body{height:100%}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font:var(--fs-base)/1.55 "Futura Light","Futura","Futura PT",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+img{max-width:100%;height:auto;display:block}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer}
+
+/* ========================================================================== */
+/* Layout commun                                                              */
+/* ========================================================================== */
+.container{max-width:1100px;margin:0 auto;padding:24px}
+header.site{
+  position:sticky;top:0;z-index:10;
+  background:rgba(230,213,184,.85);
+  backdrop-filter:saturate(180%) blur(8px);
+  border-bottom:1px solid var(--line);
+}
+
+/* ===== HEADER — BLOC UNIQUE ===== */
+header.site .nav{padding:24px 32px;display:flex;gap:12px;align-items:center;justify-content:space-between}
+.logo{height:48px;width:auto;display:block}
+.navlinks{display:flex;gap:8px;flex-wrap:wrap}
+.navlinks a{
+  font-family:"Fredericka the Great",cursive;
+  font-weight:700;
+  font-synthesis:weight;
+  font-size:clamp(18px,1.6vw,24px);
+  letter-spacing:.3px;
+  line-height:1;
+  padding:12px 16px;
+  border-radius:12px;
+  text-shadow:.0125em 0 currentColor,-.0125em 0 currentColor,0 .0125em currentColor,0 -.0125em currentColor;
+}
+.navlinks a:hover{background:#f3eee3}
+.navlinks a.active{background:#e8dcc6;outline:1px solid #dfcda9}
+.cart{display:inline-flex;align-items:center;gap:10px;padding:8px 16px;border:1px solid var(--line);background:#fff;border-radius:999px;font-weight:600}
+.cart-icon{height:32px;width:auto;display:block}
+@media (max-width:640px){
+  header.site .nav{padding:16px 18px}
+  .logo{height:38px}
+  .navlinks a{font-size:16px;padding:10px 12px}
+  .cart-icon{height:28px}
+}
+
+/* ========================================================================== */
+/* Typographie                                                                */
+/* ========================================================================== */
+h1,h2,h3,.title-xl{font-family:"Fredericka the Great",cursive;color:var(--text);margin:0 0 8px}
+h1{font-size:clamp(28px,4vw,40px)}
+h2{font-size:clamp(22px,3vw,30px)}
+h3{font-size:clamp(18px,2.5vw,22px)}
+p{margin:0 0 10px}
+.muted{color:var(--ink-muted)}
+
+/* ========================================================================== */
+/* Boutons                                                                    */
+/* ========================================================================== */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  border:1px solid var(--line);border-radius:12px;padding:10px 14px;
+  background:#fff;color:var(--text);
+  font:600 var(--fs-sm)/1 "Avenir","Avenir Next",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;
+  transition:transform .04s ease,background .2s ease,box-shadow .2s ease;
+}
+.btn:hover{background:#fff;box-shadow:0 6px 18px rgba(0,0,0,.08)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--text);color:var(--bg);border:none}
+.btn.primary:hover{filter:brightness(.95)}
+.btn.danger{background:var(--sale);color:#fff;border:none}
+
+/* ========================================================================== */
+/* Inputs                                                                     */
+/* ========================================================================== */
+.input,input,select,textarea{
+  width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--text);
+  font:400 var(--fs-base)/1.35 "Futura Light","Futura","Futura PT",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;
+}
+label.small{font-size:12px;color:var(--ink-muted)}
+
+/* ========================================================================== */
+/* Grilles                                                                    */
+/* ========================================================================== */
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+@media (max-width:1050px){.grid{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:760px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:480px){.grid{grid-template-columns:1fr}}
+
+/* ========================================================================== */
+/* Cartes produit                                                             */
+/* ========================================================================== */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column}
+.thumb{aspect-ratio:4/3;background:#faf7f0;display:grid;place-items:center;position:relative}
+.thumb img{max-width:100%;max-height:100%;object-fit:contain}
+.badge{position:absolute;top:10px;left:10px;background:var(--text);color:var(--bg);font-size:12px;padding:4px 8px;border-radius:999px}
+.badge.sale{background:var(--sale)}
+.content{padding:12px;display:flex;flex-direction:column}
+.title{font:700 var(--fs-lg)/1.2 "Fredericka the Great",cursive;color:var(--text)}
+.origin{color:var(--ink-muted);font-size:13px;margin:2px 0 8px}
+.price{display:flex;gap:8px;align-items:baseline;margin:8px 0}
+.price .now{font-weight:800}
+.price .was{color:var(--ink-muted);text-decoration:line-through}
+.qty{display:flex;gap:8px;align-items:center;margin-top:auto}
+
+/* ========================================================================== */
+/* CTA sous les boutons (3 vignettes en ligne)                                */
+/* ========================================================================== */
+.cta-row{display:flex;justify-content:center;gap:32px;flex-wrap:nowrap}
+.cta{flex:1 1 0;max-width:360px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:12px}
+.cta-img{
+  width:100%;aspect-ratio:1/1;background:var(--card);
+  border-radius:var(--radius-lg);box-shadow:var(--shadow-card);
+  padding:24px;object-fit:contain;object-position:center;border:1px solid rgba(0,0,0,.04)
+}
+@media (max-width:900px){.cta{width:300px}.cta-img{width:280px;height:280px}}
+@media (max-width:600px){.cta{width:240px}.cta-img{width:220px;height:220px}}
+
+/* ========================================================================== */
+/* Tableau (admin)                                                            */
+/* ========================================================================== */
+.table{width:100%;border-collapse:collapse;margin-top:12px;background:#fff;border-radius:12px;overflow:hidden}
+.table th,.table td{border-bottom:1px solid var(--line);text-align:left;padding:10px 12px}
+.table thead th{background:#efe5d2;color:#3a2f1a;font-weight:700}
+
+/* ========================================================================== */
+/* Header secondaire (filtres/puces)                                          */
+/* ========================================================================== */
+.search-chipbar{display:flex;gap:8px;flex-wrap:wrap;padding:12px 24px;background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,0));border-bottom:1px solid var(--line)}
+.chip{background:#f3eee3;border:1px solid var(--line);padding:6px 12px;border-radius:999px;user-select:none;transition:.15s;font-weight:600}
+.chip[aria-pressed="true"]{background:#e8dcc6;border-color:#dfcda9;color:#3a2f1a}
+
+/* ========================================================================== */
+/* Footer                                                                     */
+/* ========================================================================== */
+footer.site{margin:40px 0 24px;color:#5a5144;font-size:13px;text-align:center}
+
+/* ========================================================================== */
+/* Toast                                                                      */
+/* ========================================================================== */
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#2b2b2b;color:#fff;border-radius:999px;padding:10px 16px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9999}
+.toast.show{opacity:1}
+
+/* ========================================================================== */
+/* A11y & utilitaires                                                         */
+/* ========================================================================== */
+:focus-visible{outline:2px solid #9b6f2a;outline-offset:2px}
+[aria-busy="true"]{opacity:.6;pointer-events:none}
+.hidden{display:none!important}
+.max-w{max-width:1100px}
+.w-100{width:100%}
+.mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}.mt-24{margin-top:24px}
+.mb-8{margin-bottom:8px}.mb-12{margin-bottom:12px}.mb-16{margin-bottom:16px}.mb-24{margin-bottom:24px}
+
+/* ===== PAGE FRUITS — IMAGES MÊME TAILLE EN PIXELS (bloc complet) ===== */
+body[data-category="fruit"]{
+    --thumb-w: 320px;  /* largeur image (desktop) */
+    --thumb-h: 240px;  /* hauteur image (desktop) */
+  }
+  
+  /* Responsive : même proportion en pixels, réduit proprement */
+  @media (max-width:1050px){
+    body[data-category="fruit"]{ --thumb-w: 280px; --thumb-h: 210px; }
+  }
+  @media (max-width:760px){
+    body[data-category="fruit"]{ --thumb-w: 240px; --thumb-h: 180px; }
+  }
+  
+  body[data-category="fruit"] .grid{ align-items:stretch; }
+  
+  body[data-category="fruit"] .card{
+    display:flex;
+    flex-direction:column;
+    height:100%;
+  }
+  
+  /* Vignette : zone *fixe en pixels* pour toutes les cartes */
+  body[data-category="fruit"] .card .thumb{
+    height: var(--thumb-h);
+    width: 100%;
+    background:#faf7f0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    border-bottom:1px solid var(--line);
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+  
+  /* Image : taille identique en pixels, centrée et sans débord */
+  body[data-category="fruit"] .card .thumb img{
+    width: var(--thumb-w);
+    height: var(--thumb-h);
+    max-width: 100%;
+    object-fit: contain;
+    object-position: center;
+    margin: 0 auto;
+  }
+  
+  /* Corps normalisé : Titre/Origine/Prix alignés + CTA en bas */
+  body[data-category="fruit"] .card .content{
+    display:grid;
+    grid-template-rows:
+      minmax(2.4em, auto)   /* Titre (≈2 lignes) */
+      1.2em                 /* Origine */
+      minmax(1.2em, auto)   /* Prix */
+      1fr                   /* espace flexible */
+      auto;                 /* Qté + Ajouter */
+    row-gap:8px;
+    padding:12px;
+  }
+  
+  body[data-category="fruit"] .card .title{
+    line-height:1.2;
+    overflow:hidden;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+  }
+  
+  body[data-category="fruit"] .card .origin{ min-height:1.2em; }
+  
+  body[data-category="fruit"] .card .price{
+    min-height:1.2em;
+    margin:0;
+    display:flex;
+    gap:8px;
+    align-items:baseline;
+  }
+  
+  body[data-category="fruit"] .card .qty{
+    align-self:stretch;
+    display:flex;
+    gap:8px;
+    align-items:center;
+    margin-top:0;
+  }
+  
+  body[data-category="fruit"] .card .qty .btn,
+  body[data-category="fruit"] .card .qty select{
+    height:44px;
+    line-height:44px;
+  }
+  
+  

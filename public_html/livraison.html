@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Livraison – Chun Tian</title>
+  <link rel="stylesheet" href="assets/ui.css" />
+</head>
+<body>
+  <script src="assets/data.js"></script>
+  <script src="assets/app.js"></script>
+  <script>mountHeader("livraison");</script>
+  <main class="container">
+  
+  <h1>Livraison locale (≤ 5 km)</h1>
+  <p>Adresse du magasin : <strong>151 Rue Jean Jaurès, 94800 Villejuif</strong></p>
+  <div class="bar">
+    <button class="btn" id="loc">📍 Vérifier ma distance</button>
+    <span id="out" class="pill" style="display:none"></span>
+  </div>
+  <p>Si vous êtes dans le rayon, choisissez votre créneau au paiement.</p>
+
+  </main>
+  <footer class="site">Démo locale – HTML/CSS/JS vanilla</footer>
+  
+<script>
+(function(){
+  document.getElementById('loc').addEventListener('click', ()=>{
+    if(!navigator.geolocation){ flash('Géolocalisation indisponible', false); return; }
+    navigator.geolocation.getCurrentPosition(pos => {
+      const d = haversine(pos.coords.latitude, pos.coords.longitude, STORE.coords.lat, STORE.coords.lon);
+      const el = document.getElementById('out'); el.style.display='inline-block';
+      el.textContent = d.toFixed(2) + ' km';
+      if(d<=STORE.delivery_km){ flash('Livraison possible ✅'); }
+      else { flash('Hors zone (> 5 km)', false); }
+    }, err => { flash('Échec géoloc', false); });
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Contact – Chun Tian</title>
+  <link rel="stylesheet" href="assets/ui.css" />
+</head>
+<body>
+  <script src="assets/data.js"></script>
+  <script src="assets/app.js"></script>
+  <script>mountHeader("contact");</script>
+  <main class="container">
+  
+  <h1>Contact</h1>
+  <div class="bar">
+    <input id="name" class="input" placeholder="Nom">
+    <input id="email" class="input" placeholder="Email">
+  </div>
+  <div class="section">
+    <textarea id="message" class="input" placeholder="Votre message…"></textarea>
+  </div>
+  <button id="send" class="btn primary">Envoyer</button>
+  <p class="muted">Les messages sont stockés localement (démo).</p>
+
+  </main>
+  <footer class="site">Démo locale – HTML/CSS/JS vanilla</footer>
+  
+<script>
+(function(){
+  document.getElementById('send').addEventListener('click', ()=>{
+    const msg = {
+      name: document.getElementById('name').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      message: document.getElementById('message').value.trim(),
+      created: new Date().toISOString()
+    };
+    if(!msg.name || !msg.email || !msg.message){ flash('Champs requis', false); return; }
+    const msgs = LS.get('messages', []); msgs.push(msg); LS.set('messages', msgs);
+    flash('Message envoyé ✅'); document.getElementById('message').value='';
+  });
+})();
+</script>
+
+</body>
+</html>

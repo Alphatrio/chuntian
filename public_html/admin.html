@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Page Gérant – Admin</title>
+  <link rel="stylesheet" href="assets/ui.css" />
+</head>
+<body>
+  <script src="assets/data.js"></script>
+  <script src="assets/app.js"></script>
+  <script>mountHeader("");</script>
+  <main class="container">
+  
+  <h1>Page Gérant</h1>
+  <p class="notice">Démo locale : tout est sauvegardé dans votre navigateur (localStorage).</p>
+
+  <h2>Produits</h2>
+  <div class="bar">
+    <button id="add" class="btn primary">+ Nouveau produit</button>
+    <input id="q" class="input" placeholder="Recherche…">
+    <select id="sort">
+      <option value="updated-desc">Modifié récent</option>
+      <option value="name-asc">Nom A–Z</option>
+      <option value="price-asc">Prix ↑</option>
+      <option value="price-desc">Prix ↓</option>
+    </select>
+    <span class="pill" id="count">0</span>
+  </div>
+  <table class="table" id="table">
+    <thead><tr><th>Nom</th><th>Prix</th><th>Catégorie</th><th>Origine</th><th></th></tr></thead>
+    <tbody></tbody>
+  </table>
+
+  <details style="margin-top:18px">
+    <summary>Formulaire produit</summary>
+    <div class="bar">
+      <input id="f-name" class="input" placeholder="Nom">
+      <input id="f-id" class="input" placeholder="id (auto si vide)">
+      <select id="f-category" class="input">
+        <option>Fruits</option><option>Légumes</option>
+      </select>
+      <input id="f-price" class="input" type="number" step="0.01" placeholder="Prix">
+    </div>
+    <div class="bar">
+      <input id="f-origin" class="input" placeholder="Origine">
+      <input id="f-unit" class="input" placeholder="Unité">
+      <input id="f-image" class="input" placeholder="Image URL">
+      <input id="f-tags" class="input" placeholder="Tags (séparés par des virgules)">
+      <select id="f-featured" class="input"><option value="false">Favori: Non</option><option value="true">Favori: Oui</option></select>
+      <input id="f-created" class="input" placeholder="YYYY-MM-DD">
+    </div>
+    <div class="bar">
+      <button id="save" class="btn primary">💾 Enregistrer</button>
+      <button id="reset" class="btn">Réinitialiser</button>
+      <span id="formMsg" class="pill"></span>
+    </div>
+  </details>
+
+  <h2 style="margin-top:32px">Commandes</h2>
+  <div id="orders"></div>
+
+  </main>
+  <footer class="site">Démo locale – HTML/CSS/JS vanilla</footer>
+  
+<script>
+
+const ADMIN_TOKEN = 'alphatrio'; // même valeur que dans .env
+
+async function fetchOrders(){
+  const res = await fetch('/api/orders.php?status=pending', {
+    headers:{ 'Authorization':'Bearer ' + ADMIN_TOKEN }
+  });
+  const data = await res.json();
+  return data.orders || [];
+}
+
+async function setOrderStatusServer(id, status){
+  const res = await fetch('/api/orders.php', {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'Authorization':'Bearer ' + ADMIN_TOKEN
+    },
+    body: JSON.stringify({ id, status })
+  });
+  const data = await res.json();
+  if(!data.ok) throw new Error(data.error||'update_failed');
+}
+
+(function(){
+  // ---- produits table
+  let currentId = null;
+  const $ = s=>document.querySelector(s);
+  function slug(s){ return s.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
+  function renderTable(){
+    let list = loadProducts();
+    const q = $('#q').value.trim().toLowerCase();
+    if(q){ list = list.filter(p => JSON.stringify(p).toLowerCase().includes(q)); }
+    switch($('#sort').value){
+      case 'name-asc': list.sort((a,b)=>a.name.localeCompare(b.name,'fr')); break;
+      case 'price-asc': list.sort((a,b)=>a.price-b.price); break;
+      case 'price-desc': list.sort((a,b)=>b.price-a.price); break;
+      default: list.sort((a,b)=>new Date(b.updated||b.created||0)-new Date(a.updated||a.created||0));
+    }
+    $('#count').textContent = list.length;
+    $('#table tbody').innerHTML = list.map(p => `
+      <tr>
+        <td><strong>${p.name}</strong><div class="muted">${p.unit||''}</div></td>
+        <td>${money(p.price)}</td>
+        <td>${p.category||''}</td>
+        <td>${p.origin||''}</td>
+        <td><button data-edit="${p.id}" class="btn">Éditer</button> <button data-del="${p.id}" class="btn danger">Supprimer</button></td>
+      </tr>
+    `).join('');
+  }
+  function resetForm(){
+    currentId=null; $('#f-name').value=''; $('#f-id').value=''; $('#f-category').value='Fruits';
+    $('#f-price').value=''; $('#f-origin').value=''; $('#f-unit').value=''; $('#f-image').value='';
+    $('#f-tags').value=''; $('#f-featured').value='false'; $('#f-created').value = new Date().toISOString().slice(0,10);
+  }
+  function readForm(){
+    const name = $('#f-name').value.trim(); if(!name) throw new Error('Nom requis');
+    const id = $('#f-id').value.trim() || slug(name);
+    const price = parseFloat($('#f-price').value); if(Number.isNaN(price)) throw new Error('Prix invalide');
+    const p = {
+      id, name, price,
+      category: $('#f-category').value,
+      origin: $('#f-origin').value.trim(),
+      unit: $('#f-unit').value.trim(),
+      image: $('#f-image').value.trim(),
+      tags: $('#f-tags').value.split(',').map(s=>s.trim()).filter(Boolean),
+      featured: $('#f-featured').value==='true',
+      created: $('#f-created').value || new Date().toISOString().slice(0,10),
+      updated: new Date().toISOString()
+    };
+    return p;
+  }
+  document.getElementById('add').addEventListener('click', ()=>{ resetForm(); document.querySelector('details').open = true; });
+  document.getElementById('reset').addEventListener('click', resetForm);
+  document.getElementById('save').addEventListener('click', ()=>{
+    try{
+      const p = readForm();
+      const list = loadProducts();
+      const i = list.findIndex(x=>x.id===p.id);
+      if(i>=0) list[i] = {...list[i], ...p}; else list.push(p);
+      saveProducts(list); renderTable(); flash('Sauvegardé ✅');
+    }catch(e){ flash(e.message, false); }
+  });
+  document.getElementById('table').addEventListener('click', e=>{
+    const id = e.target.dataset.edit || e.target.dataset.del; if(!id) return;
+    const list = loadProducts();
+    const i = list.findIndex(x=>x.id===id); if(i<0) return;
+    if(e.target.dataset.del){
+      if(confirm('Supprimer ?')){ list.splice(i,1); saveProducts(list); renderTable(); }
+      return;
+    }
+    // edit
+    const p = list[i]; currentId = id;
+    $('#f-name').value = p.name||''; $('#f-id').value = p.id||''; $('#f-category').value = p.category||'Fruits';
+    $('#f-price').value = p.price??''; $('#f-origin').value = p.origin||''; $('#f-unit').value = p.unit||'';
+    $('#f-image').value = p.image||''; $('#f-tags').value = (p.tags||[]).join(', '); $('#f-featured').value = p.featured? 'true':'false';
+    $('#f-created').value = (p.created||new Date().toISOString()).slice(0,10);
+    document.querySelector('details').open = true;
+  });
+  $('#q').addEventListener('input', renderTable); $('#sort').addEventListener('change', renderTable);
+  renderTable();
+
+  // ---- commandes
+  async function renderOrders(){
+  const orders = await fetchOrders(); // <- vient de l'API
+  const root = document.getElementById('orders');
+  if(!orders.length){ root.innerHTML = '<p>Aucune commande.</p>'; return; }
+  root.innerHTML = orders.map(o => `
+    <div class="card" style="padding:12px;margin:8px 0">
+      <div class="bar">
+        <strong>#${o.id}</strong>
+        <span class="pill">${o.status}</span>
+        <span class="muted">${new Date(o.created_at).toLocaleString('fr-FR')}</span>
+      </div>
+      <div class="bar"><span>${o.customer_name||''} – ${o.customer_email||''}</span></div>
+      <div class="bar">Mode: <strong>${o.mode}</strong> – Créneau: ${o.slot? new Date(o.slot).toLocaleString('fr-FR'):'n/a'}</div>
+      <ul>${(JSON.parse(o.cart)||[]).map(it=> `<li>${it.qty} × ${it.id} – ${(it.price_cents/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'})}</li>`).join('')}</ul>
+      <div class="bar"><strong>Total: ${(o.amount_cents/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'})}</strong></div>
+      <div class="bar">
+        <button class="btn" data-acc="${o.id}">Accepter</button>
+        <button class="btn danger" data-dec="${o.id}">Refuser</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+document.getElementById('orders').addEventListener('click', async (e)=>{
+  const acc = e.target.closest('[data-acc]'); const dec = e.target.closest('[data-dec]');
+  if(!acc && !dec) return;
+  const id = acc? acc.dataset.acc : dec.dataset.dec;
+  const status = acc? 'accepted' : 'declined';
+  try{
+    await setOrderStatusServer(id, status);
+    flash('Statut mis à jour ✅');
+    renderOrders();
+  }catch(err){
+    console.error(err);
+    flash('Erreur mise à jour', false);
+  }
+});
+
+// appel initial
+renderOrders();
+
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Paiement – Chun Tian</title>
+  <link rel="stylesheet" href="assets/ui.css" />
+</head>
+<body>
+  <script src="assets/data.js"></script>
+  <script src="assets/app.js"></script>
+  <script>mountHeader("");</script>
+  <main class="container">
+  
+  <h1>Commande</h1>
+  <div class="notice">Démo locale : pas de vrai paiement. On simule un règlement et on crée une commande.</div>
+  <div class="section">
+    <h3>Coordonnées</h3>
+    <div class="bar">
+      <input id="name" class="input" placeholder="Nom et prénom">
+      <input id="email" class="input" placeholder="Email">
+      <input id="phone" class="input" placeholder="Téléphone">
+    </div>
+  </div>
+  <div class="section">
+    <h3>Mode de retrait</h3>
+    <div class="bar">
+      <label><input type="radio" name="mode" value="cc" checked> Click & Collect</label>
+      <label><input type="radio" name="mode" value="livraison"> Livraison (≤ 5 km)</label>
+    </div>
+    <div id="slotArea"></div>
+  </div>
+  <div class="section">
+    <button class="btn primary" id="pay">Payer (simulation)</button>
+  </div>
+
+  </main>
+  <footer class="site">Démo locale – HTML/CSS/JS vanilla</footer>
+  
+<script>
+(function(){
+  function slotPicker(mode){
+    const root = document.getElementById('slotArea');
+    const tomorrow = new Date(); if(tomorrow.getHours() >= 18){ tomorrow.setDate(tomorrow.getDate()+1); }
+    function dateInput(d){ return d.toISOString().slice(0,10); }
+    root.innerHTML = `
+      <div class="bar">
+        <label>Date souhaitée<br><input id="day" type="date" class="input" value="${dateInput(tomorrow)}"></label>
+        <label>Créneau<br><select id="slot" class="input"></select></label>
+      </div>
+      ${mode==='livraison' ? `
+      <div class="bar">
+        <button class="btn" id="loc">📍 Utiliser ma position</button>
+        <input id="addr" class="input" placeholder="Adresse de livraison (optionnel si géolocalisation)">
+        <span id="km" class="pill" style="display:none"></span>
+      </div>`:''}
+    `;
+    function fillSlots(){
+      const d = new Date(document.getElementById('day').value);
+      const options = makeSlots(d).map(t=>{
+        const hh = String(t.getHours()).padStart(2,'0');
+        const mm = String(t.getMinutes()).padStart(2,'0');
+        return `<option value="${t.toISOString()}">${hh}:${mm}</option>`;
+      }).join("");
+      document.getElementById('slot').innerHTML = options || '<option>Aucun créneau (fermé)</option>';
+    }
+    fillSlots();
+    document.getElementById('day').addEventListener('change', fillSlots);
+    if(mode==='livraison'){
+      document.getElementById('loc').addEventListener('click', ()=>{
+        if(!navigator.geolocation){ flash('Géolocalisation indisponible', false); return; }
+        navigator.geolocation.getCurrentPosition(pos => {
+          const d = haversine(pos.coords.latitude, pos.coords.longitude, STORE.coords.lat, STORE.coords.lon);
+          const chip = document.getElementById('km'); chip.style.display='inline-block';
+          chip.textContent = d.toFixed(2) + ' km du magasin';
+          if(d > STORE.delivery_km){ flash('Hors zone (> 5 km)', false); }
+        }, err => { flash('Échec géoloc', false); });
+      });
+    }
+  }
+  
+  const modeEls = document.querySelectorAll('input[name=mode]');
+  modeEls.forEach(r => r.addEventListener('change', ()=> slotPicker(document.querySelector('input[name=mode]:checked').value)));
+  slotPicker('cc');
+
+  document.getElementById('pay').addEventListener('click', async ()=>{
+  const name = document.getElementById('name').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  const mode = document.querySelector('input[name=mode]:checked').value;
+  const slotIso = document.getElementById('slot').value;
+  const address = (mode==='livraison') ? (document.getElementById('addr')?.value || '') : '';
+
+  if(!name || !email){ flash('Nom + email requis', false); return; }
+  if(!getCart().length){ flash('Panier vide', false); return; }
+
+  const cart = getCart().map(it=>({ id: it.id, qty: it.qty }));
+
+  try{
+    const res = await fetch('/api/checkout.php', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ customer:{name,email,phone}, mode, slot: slotIso, address, cart })
+    });
+    const data = await res.json();
+    if(!data.ok) throw new Error(data.error||'checkout_failed');
+    window.location = data.url; 
+  }catch(e){
+    console.error(e);
+    flash('Paiement indisponible', false);
+  }
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Légumes – Chun Tian</title>
+  <link rel="stylesheet" href="assets/ui.css" />
+</head>
+<body>
+  <script src="assets/data.js"></script>
+  <script src="assets/app.js"></script>
+  <script>mountHeader("legumes");</script>
+  <main class="container">
+  
+  <h1>Légumes</h1>
+  <div class="bar">
+    <input id="q" class="input" placeholder="Rechercher un légume…">
+    <label>Tri <select id="sort">
+      <option value="featured">Coups de cœur</option>
+      <option value="name-asc">Nom A–Z</option>
+      <option value="price-asc">Prix ↑</option>
+      <option value="price-desc">Prix ↓</option>
+      <option value="newest">Nouveautés</option>
+    </select></label>
+    <span id="count" class="pill">0 produit</span>
+  </div>
+  <section id="grid" class="grid"></section>
+
+  </main>
+  <footer class="site">Démo locale – HTML/CSS/JS vanilla</footer>
+  <script>document.body.dataset.category="Légumes";</script>
+<script>
+(function(){
+  const params = new URLSearchParams(location.search);
+  const category = document.body.dataset.category;
+  const qInput = document.querySelector('#q');
+  const sortSel = document.querySelector('#sort');
+  function render(){
+    const grid = document.getElementById('grid');
+    const q = qInput.value.trim().toLowerCase();
+    const sort = sortSel.value;
+    let list = loadProducts().filter(p => p.category===category);
+    if(q){ list = list.filter(p => (p.name+p.origin).toLowerCase().includes(q)); }
+    switch(sort){
+      case "name-asc": list.sort((a,b)=>a.name.localeCompare(b.name,'fr')); break;
+      case "price-asc": list.sort((a,b)=>a.price-b.price); break;
+      case "price-desc": list.sort((a,b)=>b.price-a.price); break;
+      case "newest": list.sort((a,b)=> new Date(b.created)-new Date(a.created)); break;
+      default: break;
+    }
+    document.getElementById('count').textContent = list.length + " produit" + (list.length>1?"s":"");
+    grid.innerHTML = list.map(productCard).join("");
+  }
+  document.addEventListener('click', e=>{
+    const btn = e.target.closest('[data-add]'); if(!btn) return;
+    addToCart(btn.dataset.add, 1);
+    flash("Ajouté au panier ✅");
+  });
+  document.querySelector('#q').addEventListener('input', render);
+  document.querySelector('#sort').addEventListener('change', render);
+  render();
+})();
+</script>
+</body>
+</html>

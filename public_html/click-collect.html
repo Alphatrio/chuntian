@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Click & Collect – Chun Tian</title>
+  <link rel="stylesheet" href="assets/ui.css" />
+</head>
+<body>
+  <script src="assets/data.js"></script>
+  <script src="assets/app.js"></script>
+  <script>mountHeader("cc");</script>
+  <main class="container">
+  
+  <h1>Click & Collect</h1>
+  <p>Choisissez un créneau d’enlèvement pendant les heures d’ouverture.</p>
+  <div id="picker"></div>
+
+  </main>
+  <footer class="site">Démo locale – HTML/CSS/JS vanilla</footer>
+  
+<script>
+(function(){
+  const root = document.getElementById('picker');
+  function render(){
+    const d = new Date(); // aujourd'hui
+    const slots = makeSlots(d);
+    root.innerHTML = `<div class="bar">
+      <div><strong>${d.toLocaleDateString('fr-FR')}</strong></div>
+      <select id="slot">${slots.map(t=>{
+        const hh=String(t.getHours()).padStart(2,'0'); const mm=String(t.getMinutes()).padStart(2,'0');
+        return `<option value="${t.toISOString()}">${hh}:${mm}</option>`;
+      }).join('')}</select>
+      <button id="book" class="btn primary">Réserver</button>
+    </div>`;
+    document.getElementById('book').addEventListener('click', ()=>{
+      if(!getCart().length){ flash('Ajoutez des produits au panier', false); return; }
+      const slot = document.getElementById('slot').value;
+      location.href = 'checkout.html?mode=cc&slot='+encodeURIComponent(slot);
+    });
+  }
+  render();
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Merci – Chun Tian</title>
+  <link rel="stylesheet" href="assets/ui.css" />
+</head>
+<body>
+  <script src="assets/data.js"></script>
+  <script src="assets/app.js"></script>
+  <script>mountHeader("");</script>
+  <main class="container">
+  
+  <h1>Merci pour votre commande</h1>
+  <p id="msg"></p>
+
+  </main>
+  <footer class="site">Démo locale – HTML/CSS/JS vanilla</footer>
+  
+<script>
+(function(){
+  const id = new URLSearchParams(location.search).get('id');
+  document.getElementById('msg').textContent = id? 'Référence commande : '+id : '';
+})();
+</script>
+
+</body>
+</html>
