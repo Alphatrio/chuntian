@@ -13,25 +13,28 @@
   <main class="container">
   
   <h1>Fruits</h1>
-  <div class="bar">
+  <div class="bar filters">
     <input id="q" class="input" placeholder="Rechercher un fruit…">
-    <label>Tri <select id="sort">
-      <option value="featured">Coups de cœur</option>
-      <option value="name-asc">Nom A–Z</option>
-      <option value="price-asc">Prix ↑</option>
-      <option value="price-desc">Prix ↓</option>
-      <option value="newest">Nouveautés</option>
-    </select></label>
+    <div class="filter-group">
+      <label for="sort" class="small">Tri</label>
+      <select id="sort" class="input js-fancy">
+        <option value="fav">Favoris</option>
+        <option value="name-asc">Nom A–Z</option>
+        <option value="name-desc">Nom Z–A</option>
+        <option value="price-asc">Prix ↑</option>
+        <option value="price-desc">Prix ↓</option>
+      </select>
+    </div>
     <span id="count" class="pill">0 produit</span>
   </div>
   <section id="grid" class="grid"></section>
 
   </main>
-  <footer class="site">Démo locale – HTML/CSS/JS vanilla</footer>
+  <footer class="site"><a href="assets/Chuntian%20CGV.odt" target="_blank" rel="noopener">CGV</a></footer>
   <script>document.body.dataset.category="Fruits";</script>
   <script>
-    (function(){
-      const params = new URLSearchParams(location.search);
+    (async function(){
+      if(window.initFancySelects){ initFancySelects(); }
       const category = document.body.dataset.category;
       const qInput = document.querySelector('#q');
       const sortSel = document.querySelector('#sort');
@@ -40,31 +43,63 @@
         const grid = document.getElementById('grid');
         const q = qInput.value.trim().toLowerCase();
         const sort = sortSel.value;
-        let list = (await getProducts()).filter(p => p.category===category);
+        let list = (await getProducts()).filter(p => p.category===category && (p.available ?? true));
         if(q){ list = list.filter(p => (p.name+p.origin).toLowerCase().includes(q)); }
         switch(sort){
-          case "name-asc": list.sort((a,b)=>a.name.localeCompare(b.name,'fr')); break;
-          case "price-asc": list.sort((a,b)=>a.price-b.price); break;
-          case "price-desc": list.sort((a,b)=>b.price-a.price); break;
-          case "newest": list.sort((a,b)=> new Date(b.created)-new Date(a.created)); break;
-          default: break;
+          case "fav":
+            list.sort((a,b)=>(FAVORITES.has(b.id)?1:0)-(FAVORITES.has(a.id)?1:0) || a.name.localeCompare(b.name,'fr'));
+            break;
+          case "name-asc":
+            list.sort((a,b)=>a.name.localeCompare(b.name,'fr'));
+            break;
+          case "name-desc":
+            list.sort((a,b)=>b.name.localeCompare(a.name,'fr'));
+            break;
+          case "price-asc":
+            list.sort((a,b)=>a.price-b.price);
+            break;
+          case "price-desc":
+            list.sort((a,b)=>b.price-a.price);
+            break;
+          default:
+            break;
         }
         document.getElementById('count').textContent = list.length + " produit" + (list.length>1?"s":"");
         grid.innerHTML = list.map(productCard).join("");
+        if(window.initFancySelects){ initFancySelects(grid); }
       }
     
       document.addEventListener('click', e=>{
-        const btn = e.target.closest('[data-add]'); if(!btn) return;
-        addToCart(btn.dataset.add, 1);
-        flash("Ajouté au panier ✅");
+        const addBtn = e.target.closest('[data-add]');
+        const favBtn = e.target.closest('[data-fav]');
+        if(addBtn){
+          const card = addBtn.closest('[data-product-id]');
+          let ripeness = null;
+          if(card){
+            const sel = card.querySelector('select[data-ripeness]');
+            if(sel) ripeness = sel.value || null;
+          }
+          addToCart(addBtn.dataset.add, 1, ripeness);
+          flash("Ajouté au panier ✅");
+          return;
+        }
+        if(favBtn){
+          const id = favBtn.dataset.fav;
+          toggleFavorite(id).then(fav=>{
+            if(fav === null) return;
+            favBtn.classList.toggle('fav-active', !!fav);
+          });
+        }
       });
     
       qInput.addEventListener('input', render);
       sortSel.addEventListener('change', render);
     
+      await loadFavorites();
       render();
     })();
     </script>
     
 </body>
 </html>
+

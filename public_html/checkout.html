@@ -12,46 +12,99 @@
   <script>mountHeader("");</script>
   <main class="container">
   
-  <h1>Commande</h1>
-  <div class="notice">Démo locale : pas de vrai paiement. On simule un règlement et on crée une commande.</div>
-  <div class="section">
-    <h3>Coordonnées</h3>
-    <div class="bar">
-      <input id="name" class="input" placeholder="Nom et prénom">
-      <input id="email" class="input" placeholder="Email">
-      <input id="phone" class="input" placeholder="Téléphone">
+  <section class="checkout-page">
+    <h1>Paiement</h1>
+    <p class="muted intro">
+      Renseignez vos coordonnées et choisissez votre mode de retrait. Le paiement est simulé pour cette démo.
+    </p>
+
+    <div class="checkout-layout">
+      <div class="checkout-main">
+        <div class="checkout-card">
+          <h2>Coordonnées</h2>
+          <div class="checkout-row">
+            <div class="field">
+              <label for="name">Nom et prénom</label>
+              <input id="name" class="input" placeholder="Nom et prénom">
+            </div>
+            <div class="field">
+              <label for="email">Email</label>
+              <input id="email" class="input" placeholder="vous@example.com">
+            </div>
+            <div class="field">
+              <label for="phone">Téléphone</label>
+              <input id="phone" class="input" placeholder="Téléphone">
+            </div>
+          </div>
+        </div>
+
+        <div class="checkout-card">
+          <h2>Mode de retrait</h2>
+          <div class="checkout-row mode-row">
+            <label><input type="radio" name="mode" value="cc" checked> Click & Collect</label>
+            <label><input type="radio" name="mode" value="livraison"> Livraison (≤ 5 km)</label>
+          </div>
+          <div id="slotArea"></div>
+        </div>
+
+        <div class="checkout-card">
+          <h2>Paiement</h2>
+          <p class="muted small-note">Sur cette version démo, le paiement est simulé pour créer la commande.</p>
+          <div class="bar" style="justify-content:center;margin-top:8px">
+            <button class="btn primary" id="pay">Payer (simulation)</button>
+          </div>
+        </div>
+      </div>
+
+      <aside class="cart-summary">
+        <h2>Récapitulatif panier</h2>
+        <div id="checkoutCart"></div>
+      </aside>
     </div>
-  </div>
-  <div class="section">
-    <h3>Mode de retrait</h3>
-    <div class="bar">
-      <label><input type="radio" name="mode" value="cc" checked> Click & Collect</label>
-      <label><input type="radio" name="mode" value="livraison"> Livraison (≤ 5 km)</label>
-    </div>
-    <div id="slotArea"></div>
-  </div>
-  <div class="section">
-    <button class="btn primary" id="pay">Payer (simulation)</button>
-  </div>
+  </section>
 
   </main>
-  <footer class="site">Démo locale – HTML/CSS/JS vanilla</footer>
+  <footer class="site"><a href="assets/Chuntian%20CGV.odt" target="_blank" rel="noopener">CGV</a></footer>
   
 <script>
 (function(){
+  // Préremplir les coordonnées si l'utilisateur est connecté
+  (async function prefillCustomerFromAccount(){
+    try{
+      const res = await fetch('/api/auth-me.php');
+      const data = await res.json();
+      const user = data.user || null;
+      if(!user) return;
+      const nameEl = document.getElementById('name');
+      const emailEl = document.getElementById('email');
+      if(nameEl && !nameEl.value){ nameEl.value = user.name || ''; }
+      if(emailEl && !emailEl.value){ emailEl.value = user.email || ''; }
+    }catch(e){
+      // silencieux : on garde le formulaire vide si erreur
+    }
+  })();
   function slotPicker(mode){
     const root = document.getElementById('slotArea');
     const tomorrow = new Date(); if(tomorrow.getHours() >= 18){ tomorrow.setDate(tomorrow.getDate()+1); }
     function dateInput(d){ return d.toISOString().slice(0,10); }
     root.innerHTML = `
-      <div class="bar">
-        <label>Date souhaitée<br><input id="day" type="date" class="input" value="${dateInput(tomorrow)}"></label>
-        <label>Créneau<br><select id="slot" class="input"></select></label>
+      <div class="checkout-row">
+        <div class="field">
+          <label for="day">Date souhaitée</label>
+          <input id="day" type="date" class="input" value="${dateInput(tomorrow)}">
+        </div>
+        <div class="field">
+          <label for="slot">Créneau</label>
+          <select id="slot" class="input js-fancy"></select>
+        </div>
       </div>
       ${mode==='livraison' ? `
-      <div class="bar">
+      <div class="checkout-row">
         <button class="btn" id="loc">📍 Utiliser ma position</button>
-        <input id="addr" class="input" placeholder="Adresse de livraison (optionnel si géolocalisation)">
+        <div class="field">
+          <label for="addr">Adresse de livraison</label>
+          <input id="addr" class="input" placeholder="Adresse (optionnelle si géolocalisation)">
+        </div>
         <span id="km" class="pill" style="display:none"></span>
       </div>`:''}
     `;
@@ -65,6 +118,7 @@
       document.getElementById('slot').innerHTML = options || '<option>Aucun créneau (fermé)</option>';
     }
     fillSlots();
+    if(window.initFancySelects){ initFancySelects(root); }
     document.getElementById('day').addEventListener('change', fillSlots);
     if(mode==='livraison'){
       document.getElementById('loc').addEventListener('click', ()=>{
@@ -80,7 +134,12 @@
   }
   
   const modeEls = document.querySelectorAll('input[name=mode]');
-  modeEls.forEach(r => r.addEventListener('change', ()=> slotPicker(document.querySelector('input[name=mode]:checked').value)));
+  function onModeChange(){
+    const mode = document.querySelector('input[name=mode]:checked').value;
+    slotPicker(mode);
+    if(window.renderCheckoutCart) window.renderCheckoutCart();
+  }
+  modeEls.forEach(r => r.addEventListener('change', onModeChange));
   slotPicker('cc');
 
   document.getElementById('pay').addEventListener('click', async ()=>{
@@ -94,7 +153,7 @@
   if(!name || !email){ flash('Nom + email requis', false); return; }
   if(!getCart().length){ flash('Panier vide', false); return; }
 
-  const cart = getCart().map(it=>({ id: it.id, qty: it.qty }));
+  const cart = getCart().map(it=>({ id: it.id, qty: it.qty, ripeness: it.ripeness || null }));
 
   try{
     const res = await fetch('/api/checkout.php', {
@@ -103,13 +162,55 @@
       body: JSON.stringify({ customer:{name,email,phone}, mode, slot: slotIso, address, cart })
     });
     const data = await res.json();
-    if(!data.ok) throw new Error(data.error||'checkout_failed');
+    if(!data.ok){
+      const msg = data.message || data.error || 'checkout_failed';
+      throw new Error(msg);
+    }
     window.location = data.url; 
   }catch(e){
     console.error(e);
-    flash('Paiement indisponible', false);
+    flash('Paiement indisponible: ' + (e?.message || ''), false);
   }
   });
+
+  // Récapitulatif panier sur la droite (sous-total + FDP 3,99 € si livraison et < 45 €)
+  const DELIVERY_FEE = 3.99;
+  const FREE_DELIVERY_MIN = 45;
+  async function renderCheckoutCart(){
+    const root = document.getElementById('checkoutCart');
+    if(!root) return;
+    const cart = getCart();
+    if(!cart.length){
+      root.innerHTML = '<p class="muted">Votre panier est vide.</p>';
+      return;
+    }
+    const products = await Promise.all(cart.map(it => findProduct(it.id)));
+    const lines = cart.map((it, idx)=>{
+      const p = products[idx];
+      if(!p) return '';
+      const subtotal = p.price * it.qty;
+      const ripeness = it.ripeness ? ` – ${it.ripeness}` : '';
+      return `<div class="bar" style="justify-content:space-between;margin-bottom:4px">
+        <span>${it.qty} × ${p.name}${ripeness}</span>
+        <span><strong>${money(subtotal)}</strong></span>
+      </div>`;
+    }).join("");
+    const subtotal = cart.reduce((s,it,idx)=>{
+      const p = products[idx]; return s + (p ? p.price*it.qty : 0);
+    },0);
+    const mode = document.querySelector('input[name=mode]:checked')?.value || 'cc';
+    const addDelivery = mode === 'livraison' && subtotal < FREE_DELIVERY_MIN;
+    const deliveryAmount = addDelivery ? DELIVERY_FEE : 0;
+    const total = subtotal + deliveryAmount;
+    let footer = `<hr style="margin:8px 0;border:none;border-top:1px solid var(--line)"><div class="bar" style="justify-content:space-between;margin-bottom:2px"><span>Sous-total </span><span>${money(subtotal)}</span></div>`;
+    if(addDelivery){
+      footer += `<div class="bar" style="justify-content:space-between;margin-bottom:2px"><span>Livraison </span><span>${money(DELIVERY_FEE)}</span></div>`;
+    }
+    footer += `<p style="margin-top:6px"><strong>Total : ${money(total)}</strong></p>`;
+    root.innerHTML = lines + footer;
+  }
+  window.renderCheckoutCart = renderCheckoutCart;
+  renderCheckoutCart();
 })();
 </script>
 

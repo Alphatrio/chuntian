@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS products (
   old_price_cents INTEGER,
   tags TEXT, -- JSON array
   featured INTEGER DEFAULT 0,
+  available INTEGER NOT NULL DEFAULT 1,
   created_at TEXT,
   updated_at TEXT
 );

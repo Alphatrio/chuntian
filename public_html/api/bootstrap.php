@@ -2,6 +2,11 @@
 // api/bootstrap.php
 declare(strict_types=1);
 
+// Sessions for authentication
+if (session_status() === PHP_SESSION_NONE) {
+  session_start();
+}
+
 header('Content-Type: application/json; charset=utf-8');
 
 // CORS (adjust if needed)
@@ -22,10 +27,13 @@ function env(string $key, $default=null) {
     $loaded = true;
     $path = __DIR__ . '/../.env';
     if (is_file($path)) {
-      $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+      $raw = file_get_contents($path);
+      $raw = preg_replace('/^\x{FEFF}/u', '', $raw);
+      $lines = preg_split('/\r?\n/', $raw, -1, PREG_SPLIT_NO_EMPTY);
       foreach ($lines as $line) {
-        if (str_starts_with(trim($line), '#')) continue;
-        [$k,$v] = array_pad(explode('=', $line, 2), 2, '');
+        $line = trim($line);
+        if ($line === '' || str_starts_with($line, '#')) continue;
+        [$k, $v] = array_pad(explode('=', $line, 2), 2, '');
         $map[trim($k)] = trim($v);
       }
     }
@@ -65,9 +73,30 @@ function bearer(): ?string {
   return null;
 }
 
+function current_user(): ?array {
+  static $cached = null;
+  static $loaded = false;
+  if ($loaded) return $cached;
+  $loaded = true;
+  $id = $_SESSION['user_id'] ?? null;
+  if (!$id) return null;
+  $pdo = db();
+  $stmt = $pdo->prepare("SELECT id,name,email,is_admin,created_at FROM users WHERE id = :id");
+  $stmt->execute([':id'=>$id]);
+  $row = $stmt->fetch(PDO::FETCH_ASSOC);
+  if (!$row) return null;
+  // normalise is_admin to bool
+  $row['is_admin'] = (bool)($row['is_admin'] ?? 0);
+  $cached = $row;
+  return $cached;
+}
+
 function require_admin(): void {
-  $tok = bearer();
-  if (!$tok || $tok !== env('ADMIN_TOKEN')) json_out(['ok'=>false,'error'=>'unauthorized'], 401);
+  $u = current_user();
+  if ($u && !empty($u['is_admin'])) {
+    return;
+  }
+  json_out(['ok'=>false,'error'=>'unauthorized'], 401);
 }
 
 function money_cents($n): int {
@@ -95,16 +124,25 @@ function recalc_amount(array $cart, array $catalog): array {
     if (!isset($catalog[$id])) continue;
     $price_cents = (int)$catalog[$id]['price_cents'];
     $subtotal = $price_cents * $qty;
-    $items[] = ['id'=>$id, 'qty'=>$qty, 'price_cents'=>$price_cents];
+    $items[] = [
+      'id'=>$id,
+      'qty'=>$qty,
+      'price_cents'=>$price_cents,
+      'ripeness'=>$line['ripeness'] ?? null,
+    ];
     $total += $subtotal;
   }
   return [$items, $total];
 }
 
 function store_opening(): array {
-  $json = env('STORE_OPENING_JSON', '{"Mon":["09:00","19:00"],"Tue":["09:00","19:00"],"Wed":["09:00","19:00"],"Thu":["09:00","19:00"],"Fri":["09:00","19:00"],"Sat":["09:00","18:00"],"Sun":null}');
+  $default = '{"Mon":["09:00","19:00"],"Tue":["09:00","19:00"],"Wed":["09:00","19:00"],"Thu":["09:00","19:00"],"Fri":["09:00","19:00"],"Sat":["09:00","18:00"],"Sun":null}';
+  $json = trim((string) env('STORE_OPENING_JSON', $default));
+  if ($json !== '' && $json[0] !== '{') {
+    $json = $default;
+  }
   $arr = json_decode($json, true);
-  return is_array($arr) ? $arr : [];
+  return is_array($arr) ? $arr : json_decode($default, true) ?? [];
 }
 
 function make_slots_for_date(string $ymd): array {

@@ -17,7 +17,7 @@
   <div id="picker"></div>
 
   </main>
-  <footer class="site">Démo locale – HTML/CSS/JS vanilla</footer>
+  <footer class="site"><a href="assets/Chuntian%20CGV.odt" target="_blank" rel="noopener">CGV</a></footer>
   
 <script>
 (function(){
@@ -27,12 +27,13 @@
     const slots = makeSlots(d);
     root.innerHTML = `<div class="bar">
       <div><strong>${d.toLocaleDateString('fr-FR')}</strong></div>
-      <select id="slot">${slots.map(t=>{
+      <select id="slot" class="js-fancy">${slots.map(t=>{
         const hh=String(t.getHours()).padStart(2,'0'); const mm=String(t.getMinutes()).padStart(2,'0');
         return `<option value="${t.toISOString()}">${hh}:${mm}</option>`;
       }).join('')}</select>
       <button id="book" class="btn primary">Réserver</button>
     </div>`;
+    if(window.initFancySelects){ initFancySelects(root); }
     document.getElementById('book').addEventListener('click', ()=>{
       if(!getCart().length){ flash('Ajoutez des produits au panier', false); return; }
       const slot = document.getElementById('slot').value;

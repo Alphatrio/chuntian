@@ -68,27 +68,43 @@ header.site{
 }
 
 /* ===== HEADER — BLOC UNIQUE ===== */
-header.site .nav{padding:24px 32px;display:flex;gap:12px;align-items:center;justify-content:space-between}
-.logo{height:48px;width:auto;display:block}
+header.site .nav{padding:16px 32px;display:flex;gap:12px;align-items:center;justify-content:space-between}
+.brand{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:72px;
+  overflow:hidden; /* "crop" le vide autour du logo */
+}
+.logo{
+  height:110px; /* un peu plus grand que le conteneur pour zoomer */
+  width:auto;
+  display:block;
+}
 .navlinks{display:flex;gap:8px;flex-wrap:wrap}
 .navlinks a{
-  font-family:"Fredericka the Great",cursive;
-  font-weight:700;
-  font-synthesis:weight;
+  font-family:"Futura Light","Futura","Futura PT",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;
+  font-weight:600;
   font-size:clamp(18px,1.6vw,24px);
   letter-spacing:.3px;
   line-height:1;
   padding:12px 16px;
   border-radius:12px;
-  text-shadow:.0125em 0 currentColor,-.0125em 0 currentColor,0 .0125em currentColor,0 -.0125em currentColor;
 }
 .navlinks a:hover{background:#f3eee3}
 .navlinks a.active{background:#e8dcc6;outline:1px solid #dfcda9}
+.account-links{display:flex;gap:8px;align-items:center;margin-left:auto;margin-right:12px}
+.account-links .btn{padding:8px 12px;font-size:14px}
 .cart{display:inline-flex;align-items:center;gap:10px;padding:8px 16px;border:1px solid var(--line);background:#fff;border-radius:999px;font-weight:600}
 .cart-icon{height:32px;width:auto;display:block}
 @media (max-width:640px){
-  header.site .nav{padding:16px 18px}
-  .logo{height:38px}
+  header.site .nav{padding:10px 16px}
+  .brand{
+    height:56px;
+  }
+  .logo{
+    height:90px;
+  }
   .navlinks a{font-size:16px;padding:10px 12px}
   .cart-icon{height:28px}
 }
@@ -96,11 +112,17 @@ header.site .nav{padding:24px 32px;display:flex;gap:12px;align-items:center;just
 /* ========================================================================== */
 /* Typographie                                                                */
 /* ========================================================================== */
-h1,h2,h3,.title-xl{font-family:"Fredericka the Great",cursive;color:var(--text);margin:0 0 8px}
+h1,h2,h3,.title-xl{
+  font-family:"Futura Light","Futura","Futura PT",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;
+  color:var(--text);
+  margin:0 0 8px;
+  text-align:center;
+}
 h1{font-size:clamp(28px,4vw,40px)}
 h2{font-size:clamp(22px,3vw,30px)}
 h3{font-size:clamp(18px,2.5vw,22px)}
 p{margin:0 0 10px}
+.section.center p{text-align:center}
 .muted{color:var(--ink-muted)}
 
 /* ========================================================================== */
@@ -110,7 +132,7 @@ p{margin:0 0 10px}
   display:inline-flex;align-items:center;justify-content:center;gap:8px;
   border:1px solid var(--line);border-radius:12px;padding:10px 14px;
   background:#fff;color:var(--text);
-  font:600 var(--fs-sm)/1 "Avenir","Avenir Next",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;
+  font:600 var(--fs-sm)/1 "Futura Light","Futura","Futura PT",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;
   transition:transform .04s ease,background .2s ease,box-shadow .2s ease;
 }
 .btn:hover{background:#fff;box-shadow:0 6px 18px rgba(0,0,0,.08)}
@@ -128,6 +150,151 @@ p{margin:0 0 10px}
 }
 label.small{font-size:12px;color:var(--ink-muted)}
 
+/* Barres de recherche / filtres produits — style DA */
+.bar.filters{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:12px;
+  margin-bottom:20px;
+  padding:20px 24px;
+  background:rgba(255,255,255,.6);
+  border:1px solid rgba(223,205,169,.6);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  max-width:560px;
+  margin-left:auto;
+  margin-right:auto;
+}
+.bar.filters > *{
+  max-width:480px;
+  width:100%;
+}
+.filter-group{
+  width:100%;
+  text-align:center;
+}
+.filter-group label.small{
+  display:block;
+  margin-bottom:6px;
+  font-size:13px;
+  font-weight:600;
+  color:var(--text);
+  letter-spacing:.02em;
+  text-transform:uppercase;
+}
+.fancy-select .native-select{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  opacity:0;
+  pointer-events:none;
+}
+/* Select custom (Tri) */
+.fancy-select{
+  position:relative;
+}
+.fancy-select .select-trigger{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  background:#fff;
+  border:1px solid rgba(223,205,169,.8);
+  border-radius:12px;
+  padding:12px 14px;
+  font-size:15px;
+  color:var(--text);
+  cursor:pointer;
+  transition:border-color .2s ease, box-shadow .2s ease, background .15s ease;
+}
+.fancy-select .select-trigger::after{
+  content:"";
+  width:0;
+  height:0;
+  border-left:6px solid transparent;
+  border-right:6px solid transparent;
+  border-top:6px solid #323232;
+  opacity:.8;
+}
+.fancy-select.is-open .select-trigger{
+  border-bottom-left-radius:8px;
+  border-bottom-right-radius:8px;
+  border-color:rgba(223,205,169,1);
+  box-shadow:0 6px 14px rgba(0,0,0,.1);
+}
+.fancy-select .select-menu{
+  position:absolute;
+  top:calc(100% + 4px);
+  left:0;
+  right:0;
+  background:#fff;
+  border-radius:12px;
+  border:1px solid rgba(223,205,169,1);
+  box-shadow:0 10px 28px rgba(0,0,0,.18);
+  padding:4px 0;
+  list-style:none;
+  margin:0;
+  max-height:260px;
+  overflow:auto;
+  z-index:20;
+  display:none;
+}
+.fancy-select.is-open .select-menu{
+  display:block;
+}
+.fancy-select .select-option{
+  padding:8px 14px;
+  font-size:15px;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.fancy-select .select-option:hover{
+  background:#f3eee3;
+}
+.fancy-select .select-option.is-active{
+  background:var(--brand-ink);
+  color:var(--brand-beige);
+}
+/* Select Tri — style customisé */
+.bar.filters select,
+.bar.filters .input{
+  background:#fff;
+  border:1px solid rgba(223,205,169,.8);
+  border-radius:12px;
+  padding:12px 14px;
+  font-size:15px;
+  color:var(--text);
+  transition:border-color .2s ease, box-shadow .2s ease;
+}
+.bar.filters select{
+  appearance:none;
+  -webkit-appearance:none;
+  padding-right:40px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23323232' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 12px center;
+  background-size:18px;
+}
+.bar.filters select:focus,
+.bar.filters .input:focus{
+  outline:none;
+  border-color:var(--brand-ink);
+  box-shadow:0 0 0 2px rgba(50,50,50,.12);
+}
+.bar.filters .pill{
+  display:inline-block;
+  padding:8px 14px;
+  background:var(--brand-ink);
+  color:var(--brand-beige);
+  font-size:13px;
+  font-weight:600;
+  border-radius:999px;
+  letter-spacing:.02em;
+}
+
 /* ========================================================================== */
 /* Grilles                                                                    */
 /* ========================================================================== */
@@ -139,18 +306,39 @@ label.small{font-size:12px;color:var(--ink-muted)}
 /* ========================================================================== */
 /* Cartes produit                                                             */
 /* ========================================================================== */
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column}
-.thumb{aspect-ratio:4/3;background:#faf7f0;display:grid;place-items:center;position:relative}
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  overflow:hidden;
+  box-shadow:var(--shadow);
+  display:flex;
+  flex-direction:column;
+}
+.thumb{
+  aspect-ratio:4/3;
+  background:#faf7f0;
+  display:grid;
+  place-items:center;
+  position:relative;
+}
 .thumb img{max-width:100%;max-height:100%;object-fit:contain}
 .badge{position:absolute;top:10px;left:10px;background:var(--text);color:var(--bg);font-size:12px;padding:4px 8px;border-radius:999px}
 .badge.sale{background:var(--sale)}
 .content{padding:12px;display:flex;flex-direction:column}
-.title{font:700 var(--fs-lg)/1.2 "Fredericka the Great",cursive;color:var(--text)}
+.title{
+  font:700 var(--fs-lg)/1.2 "Futura Light","Futura","Futura PT",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;
+  color:var(--text);
+}
 .origin{color:var(--ink-muted);font-size:13px;margin:2px 0 8px}
 .price{display:flex;gap:8px;align-items:baseline;margin:8px 0}
 .price .now{font-weight:800}
 .price .was{color:var(--ink-muted);text-decoration:line-through}
 .qty{display:flex;gap:8px;align-items:center;margin-top:auto}
+.qty .fancy-select .select-trigger{
+  padding:8px 10px;
+  font-size:14px;
+}
 
 /* ========================================================================== */
 /* CTA sous les boutons (3 vignettes en ligne)                                */
@@ -185,6 +373,365 @@ label.small{font-size:12px;color:var(--ink-muted)}
 footer.site{margin:40px 0 24px;color:#5a5144;font-size:13px;text-align:center}
 
 /* ========================================================================== */
+/* Page contact                                                               */
+/* ========================================================================== */
+.contact-page{
+  max-width:680px;
+  margin:24px auto 0;
+  text-align:center;
+}
+.contact-card{
+  margin-top:16px;
+  padding:20px 24px;
+  background:#fff;
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-card);
+}
+.contact-card .field{
+  text-align:left;
+  margin-bottom:12px;
+}
+.contact-card label{
+  display:block;
+  margin-bottom:4px;
+  font-size:14px;
+  color:var(--ink-muted);
+}
+.contact-card textarea{
+  min-height:140px;
+  resize:vertical;
+}
+.contact-row{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.contact-row .field{
+  flex:1 1 200px;
+}
+.contact-card .small-note{
+  margin-top:8px;
+  font-size:13px;
+  text-align:center;
+}
+
+/* ========================================================================== */
+/* Admin — formulaire produit                                                 */
+/* ========================================================================== */
+.admin-product-form{
+  display:block;
+}
+.admin-form-card{
+  margin-top:10px;
+  padding:18px 20px 16px;
+  background:#fff;
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-card);
+}
+.admin-form-card .bar{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-bottom:10px;
+}
+.admin-form-card .field{
+  flex:1 1 160px;
+  text-align:left;
+}
+.admin-form-card label.small{
+  display:block;
+  margin-bottom:4px;
+  font-size:13px;
+  color:var(--ink-muted);
+}
+.admin-availability{
+  max-width:180px;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+}
+.admin-availability-toggle{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  height:38px;
+}
+.admin-form-actions{
+  justify-content:flex-start;
+  align-items:center;
+}
+.admin-form-actions .btn{
+  min-width:140px;
+}
+.admin-form-actions #formMsg{
+  margin-left:auto;
+}
+
+/* ========================================================================== */
+/* Page à propos                                                              */
+/* ========================================================================== */
+.about-page{
+  max-width:900px;
+  margin:24px auto 0;
+  text-align:center;
+}
+.about-page .intro{
+  margin:8px auto 24px;
+  max-width:700px;
+}
+.about-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:16px;
+}
+@media (max-width:900px){
+  .about-grid{grid-template-columns:repeat(2,1fr);}
+}
+@media (max-width:640px){
+  .about-grid{grid-template-columns:1fr;}
+}
+.about-card{
+  background:#fff;
+  border-radius:var(--radius);
+  box-shadow:var(--shadow-card);
+  padding:18px 20px;
+  text-align:left;
+}
+.about-card h2{
+  font-size:clamp(18px,2.2vw,22px);
+  margin-bottom:8px;
+}
+.about-card p{
+  margin:0;
+}
+
+/* ========================================================================== */
+/* Page panier                                                                */
+/* ========================================================================== */
+.cart-page{
+  max-width:960px;
+  margin:24px auto 0;
+}
+.cart-page .intro{
+  margin:8px auto 24px;
+  max-width:720px;
+  text-align:center;
+}
+.cart-layout{
+  display:grid;
+  grid-template-columns:minmax(0,2fr) minmax(260px,1fr);
+  gap:20px;
+  align-items:flex-start;
+}
+@media (max-width:840px){
+  .cart-layout{
+    grid-template-columns:1fr;
+  }
+}
+.cart-summary{
+  background:#fff;
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-card);
+  padding:16px 18px;
+}
+.cart-summary h2{
+  margin-bottom:8px;
+}
+.cart-summary p{
+  margin:0;
+}
+.cart-actions{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-top:12px;
+}
+
+/* Bouton favoris sur les cartes produit */
+.fav-btn{
+  position:absolute;
+  top:10px;
+  right:10px;
+  border:none;
+  border-radius:999px;
+  width:32px;
+  height:32px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(255,255,255,0.9);
+  box-shadow:0 2px 6px rgba(0,0,0,.15);
+  font-size:16px;
+  cursor:pointer;
+}
+.fav-btn.fav-active{
+  background:var(--sale);
+  color:#fff;
+}
+
+/* ========================================================================== */
+/* Page checkout                                                              */
+/* ========================================================================== */
+.checkout-page{
+  max-width:960px;
+  margin:24px auto 0;
+}
+.checkout-page .intro{
+  margin:8px auto 24px;
+  max-width:720px;
+  text-align:center;
+}
+.checkout-layout{
+  display:grid;
+  grid-template-columns:minmax(0,2fr) minmax(260px,1fr);
+  gap:20px;
+  align-items:flex-start;
+}
+@media (max-width:840px){
+  .checkout-layout{grid-template-columns:1fr;}
+}
+.checkout-main{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+.checkout-card{
+  background:#fff;
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-card);
+  padding:16px 18px;
+}
+.checkout-card h2{
+  margin-bottom:8px;
+}
+.checkout-row{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.checkout-card .mode-row,
+.checkout-card #slotArea > .checkout-row{
+  justify-content:center;
+}
+.checkout-card #slotArea > .checkout-row{
+  margin-top:8px;
+}
+.checkout-row .field{
+  flex:1 1 200px;
+}
+.checkout-card .field{
+  text-align:left;
+}
+.checkout-card label{
+  display:block;
+  margin-bottom:4px;
+  font-size:14px;
+  color:var(--ink-muted);
+}
+.checkout-card textarea{
+  min-height:120px;
+  resize:vertical;
+}
+.checkout-card .small-note{
+  font-size:13px;
+}
+.mode-row{
+  align-items:center;
+}
+
+/* ========================================================================== */
+/* Page compte                                                                */
+/* ========================================================================== */
+.account-page{
+  max-width:960px;
+  margin:24px auto 0;
+}
+.account-page .intro{
+  margin:8px auto 24px;
+  max-width:720px;
+  text-align:center;
+}
+.account-layout{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0,1fr));
+  gap:16px;
+}
+@media (max-width:720px){
+  .account-layout{grid-template-columns:1fr;}
+}
+.account-card{
+  background:#fff;
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-card);
+  padding:16px 18px;
+}
+.account-card h2{
+  margin-bottom:8px;
+}
+.account-card .field{
+  margin-bottom:10px;
+  text-align:left;
+}
+.account-card label{
+  display:block;
+  margin-bottom:4px;
+  font-size:14px;
+  color:var(--ink-muted);
+}
+
+.account-card.list{
+  text-align:left;
+}
+.account-card.list h2{
+  text-align:center;
+  margin-bottom:12px;
+}
+/* centre les cartes info + commandes */
+#accountInfo{
+  text-align:center;
+}
+#orderHistory{
+  text-align:center;
+}
+.account-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.account-list-item{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 14px;
+  background:rgba(250,247,240,.8);
+  border:1px solid rgba(223,205,169,.5);
+  border-radius:12px;
+  transition:background .2s ease, border-color .2s ease;
+}
+.account-list-item:hover{
+  background:rgba(243,238,227,.9);
+  border-color:rgba(223,205,169,.7);
+}
+.account-list-item img{
+  width:52px;
+  height:52px;
+  border-radius:12px;
+  object-fit:cover;
+  border:1px solid rgba(0,0,0,.06);
+}
+.account-list-item-main{
+  flex:1;
+}
+.account-list-item-title{
+  font-weight:600;
+  color:var(--text);
+}
+.account-list-item-meta{
+  font-size:13px;
+  color:var(--ink-muted);
+}
+
+/* ========================================================================== */
 /* Toast                                                                      */
 /* ========================================================================== */
 .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#2b2b2b;color:#fff;border-radius:999px;padding:10px 16px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9999}
@@ -201,30 +748,42 @@ footer.site{margin:40px 0 24px;color:#5a5144;font-size:13px;text-align:center}
 .mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}.mt-24{margin-top:24px}
 .mb-8{margin-bottom:8px}.mb-12{margin-bottom:12px}.mb-16{margin-bottom:16px}.mb-24{margin-bottom:24px}
 
-/* ===== PAGE FRUITS — IMAGES MÊME TAILLE EN PIXELS (bloc complet) ===== */
-body[data-category="fruit"]{
-    --thumb-w: 320px;  /* largeur image (desktop) */
-    --thumb-h: 240px;  /* hauteur image (desktop) */
-  }
-  
-  /* Responsive : même proportion en pixels, réduit proprement */
-  @media (max-width:1050px){
-    body[data-category="fruit"]{ --thumb-w: 280px; --thumb-h: 210px; }
-  }
-  @media (max-width:760px){
-    body[data-category="fruit"]{ --thumb-w: 240px; --thumb-h: 180px; }
-  }
-  
-  body[data-category="fruit"] .grid{ align-items:stretch; }
-  
-  body[data-category="fruit"] .card{
+/* ===== PAGES PRODUITS — IMAGES MÊME TAILLE EN PIXELS (Fruits + Légumes + Herbes) ===== */
+body[data-category="Fruits"],
+body[data-category="Légumes"],
+body[data-category="Herbes"]{
+  --thumb-w: 320px;  /* largeur image (desktop) */
+  --thumb-h: 240px;  /* hauteur image (desktop) */
+}
+
+/* Responsive : même proportion en pixels, réduit proprement */
+@media (max-width:1050px){
+  body[data-category="Fruits"],
+  body[data-category="Légumes"],
+  body[data-category="Herbes"]{ --thumb-w: 280px; --thumb-h: 210px; }
+}
+@media (max-width:760px){
+  body[data-category="Fruits"],
+  body[data-category="Légumes"],
+  body[data-category="Herbes"]{ --thumb-w: 240px; --thumb-h: 180px; }
+}
+
+body[data-category="Fruits"] .grid,
+body[data-category="Légumes"] .grid,
+body[data-category="Herbes"] .grid{ align-items:stretch; }
+
+body[data-category="Fruits"] .card,
+body[data-category="Légumes"] .card,
+body[data-category="Herbes"] .card{
     display:flex;
     flex-direction:column;
     height:100%;
   }
   
   /* Vignette : zone *fixe en pixels* pour toutes les cartes */
-  body[data-category="fruit"] .card .thumb{
+  body[data-category="Fruits"] .card .thumb,
+  body[data-category="Légumes"] .card .thumb,
+  body[data-category="Herbes"] .card .thumb{
     height: var(--thumb-h);
     width: 100%;
     background:#faf7f0;
@@ -232,34 +791,40 @@ body[data-category="fruit"]{
     align-items:center;
     justify-content:center;
     position:relative;
+    overflow:hidden;
     border-bottom:1px solid var(--line);
     border-radius: var(--radius) var(--radius) 0 0;
   }
   
-  /* Image : taille identique en pixels, centrée et sans débord */
-  body[data-category="fruit"] .card .thumb img{
-    width: var(--thumb-w);
-    height: var(--thumb-h);
-    max-width: 100%;
-    object-fit: contain;
+  /* Image : taille identique en pixels, remplit la zone (cover = même rendu partout) */
+  body[data-category="Fruits"] .card .thumb img,
+  body[data-category="Légumes"] .card .thumb img,
+  body[data-category="Herbes"] .card .thumb img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
     object-position: center;
-    margin: 0 auto;
   }
   
   /* Corps normalisé : Titre/Origine/Prix alignés + CTA en bas */
-  body[data-category="fruit"] .card .content{
-    display:grid;
-    grid-template-rows:
-      minmax(2.4em, auto)   /* Titre (≈2 lignes) */
-      1.2em                 /* Origine */
-      minmax(1.2em, auto)   /* Prix */
-      1fr                   /* espace flexible */
-      auto;                 /* Qté + Ajouter */
-    row-gap:8px;
-    padding:12px;
-  }
+body[data-category="Fruits"] .card .content,
+body[data-category="Légumes"] .card .content,
+body[data-category="Herbes"] .card .content{
+  display:grid;
+  grid-template-rows:
+    minmax(2.4em, auto)   /* Titre (≈2 lignes) */
+    1.2em                 /* Origine */
+    minmax(1.2em, auto)   /* Prix */
+    1fr                   /* espace flexible */
+    auto;                 /* Qté + Ajouter */
+  row-gap:8px;
+  padding:12px;
+  text-align:center;
+}
   
-  body[data-category="fruit"] .card .title{
+  body[data-category="Fruits"] .card .title,
+  body[data-category="Légumes"] .card .title,
+  body[data-category="Herbes"] .card .title{
     line-height:1.2;
     overflow:hidden;
     display:-webkit-box;
@@ -267,17 +832,24 @@ body[data-category="fruit"]{
     -webkit-box-orient:vertical;
   }
   
-  body[data-category="fruit"] .card .origin{ min-height:1.2em; }
+  body[data-category="Fruits"] .card .origin,
+  body[data-category="Légumes"] .card .origin,
+  body[data-category="Herbes"] .card .origin{ min-height:1.2em; }
   
-  body[data-category="fruit"] .card .price{
-    min-height:1.2em;
-    margin:0;
-    display:flex;
-    gap:8px;
-    align-items:baseline;
-  }
+body[data-category="Fruits"] .card .price,
+body[data-category="Légumes"] .card .price,
+body[data-category="Herbes"] .card .price{
+  min-height:1.2em;
+  margin:0;
+  display:flex;
+  gap:8px;
+  align-items:baseline;
+  justify-content:center;
+}
   
-  body[data-category="fruit"] .card .qty{
+  body[data-category="Fruits"] .card .qty,
+  body[data-category="Légumes"] .card .qty,
+  body[data-category="Herbes"] .card .qty{
     align-self:stretch;
     display:flex;
     gap:8px;
@@ -285,8 +857,12 @@ body[data-category="fruit"]{
     margin-top:0;
   }
   
-  body[data-category="fruit"] .card .qty .btn,
-  body[data-category="fruit"] .card .qty select{
+  body[data-category="Fruits"] .card .qty .btn,
+  body[data-category="Légumes"] .card .qty .btn,
+  body[data-category="Herbes"] .card .qty .btn,
+  body[data-category="Fruits"] .card .qty select,
+  body[data-category="Légumes"] .card .qty select,
+  body[data-category="Herbes"] .card .qty select{
     height:44px;
     line-height:44px;
   }

@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mon compte – Chun Tian</title>
+  <link rel="stylesheet" href="assets/ui.css" />
+</head>
+<body>
+  <script src="assets/data.js"></script>
+  <script src="assets/app.js"></script>
+  <script>mountHeader("");</script>
+  <main class="container">
+  
+  <section class="account-page">
+    <h1>Mon compte</h1>
+    <p class="muted intro">
+      Créez un compte ou connectez-vous pour gérer vos commandes. Le compte gérant dispose d’un accès à la page admin.
+    </p>
+
+    <div class="account-layout">
+      <div class="account-card" id="login">
+        <h2>Connexion</h2>
+        <div class="field">
+          <label for="loginEmail">Email</label>
+          <input id="loginEmail" class="input" placeholder="vous@example.com">
+        </div>
+        <div class="field">
+          <label for="loginPassword">Mot de passe</label>
+          <input id="loginPassword" class="input" type="password" placeholder="Mot de passe">
+        </div>
+        <div class="bar" style="justify-content:center;margin-top:8px">
+          <button id="loginBtn" class="btn primary">Se connecter</button>
+        </div>
+      </div>
+
+      <div class="account-card" id="register">
+        <h2>Créer un compte</h2>
+        <div class="field">
+          <label for="regName">Nom</label>
+          <input id="regName" class="input" placeholder="Votre nom">
+        </div>
+        <div class="field">
+          <label for="regEmail">Email</label>
+          <input id="regEmail" class="input" placeholder="vous@example.com">
+        </div>
+        <div class="field">
+          <label for="regPassword">Mot de passe</label>
+          <input id="regPassword" class="input" type="password" placeholder="Au moins 6 caractères">
+        </div>
+        <div class="bar" style="justify-content:center;margin-top:8px">
+          <button id="registerBtn" class="btn">Créer mon compte</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="orderHistory" class="account-card list" style="display:none;margin-top:16px"></div>
+    <div id="favoritesBox" class="account-card list" style="display:none;margin-top:16px"></div>
+  </section>
+
+  </main>
+  <footer class="site"><a href="assets/Chuntian%20CGV.odt" target="_blank" rel="noopener">CGV</a></footer>
+  
+<script>
+(function(){
+  async function fetchMe(){
+    const res = await fetch('/api/auth-me.php');
+    const data = await res.json();
+    return data.user || null;
+  }
+
+  function showAccountInfo(user){
+    const loginCard = document.getElementById('login');
+    const registerCard = document.getElementById('register');
+    if(!user){
+      if(loginCard) loginCard.style.display = '';
+      if(registerCard) registerCard.style.display = '';
+      return;
+    }
+    if(loginCard) loginCard.style.display = 'none';
+    if(registerCard) registerCard.style.display = 'none';
+  }
+
+  async function renderOrderHistory(user){
+    const box = document.getElementById('orderHistory');
+    if(!box) return;
+    if(!user){
+      box.style.display = 'none';
+      box.innerHTML = '';
+      return;
+    }
+    try{
+      const res = await fetch('/api/my-orders.php');
+      const data = await res.json();
+      if(!res.ok || !data.ok){
+        box.style.display = 'block';
+        box.innerHTML = '<h2>Mes commandes</h2><p class="muted">Impossible de charger vos commandes.</p>';
+        return;
+      }
+      const orders = data.orders || [];
+      box.style.display = 'block';
+      if(!orders.length){
+        box.innerHTML = '<h2>Mes commandes</h2><p class="muted">Vous n\'avez pas encore passé de commande.</p>';
+        return;
+      }
+      const lines = orders.map(o => `
+        <div class="account-list-item">
+          <div class="account-list-item-main">
+            <div class="account-list-item-title">Commande #${o.id}</div>
+            <div class="account-list-item-meta">${new Date(o.created_at).toLocaleString('fr-FR')} – ${o.status}</div>
+          </div>
+          <div><strong>${(o.amount_cents/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'})}</strong></div>
+        </div>
+      `).join('');
+      box.innerHTML = '<h2>Mes commandes</h2><div class="account-list">' + lines + '</div>';
+    }catch(e){
+      box.style.display = 'block';
+      box.innerHTML = '<h2>Mes commandes</h2><p class="muted">Erreur lors du chargement de vos commandes.</p>';
+    }
+  }
+
+  async function renderFavorites(user){
+    const box = document.getElementById('favoritesBox');
+    if(!box) return;
+    if(!user){
+      box.style.display = 'none';
+      box.innerHTML = '';
+      return;
+    }
+    try{
+      const res = await fetch('/api/my-favorites.php');
+      const data = await res.json();
+      if(!res.ok || !data.ok){
+        box.style.display = 'block';
+        box.innerHTML = '<h2>Mes favoris</h2><p class="muted">Impossible de charger vos favoris.</p>';
+        return;
+      }
+      const favs = data.favorites || [];
+      box.style.display = 'block';
+      if(!favs.length){
+        box.innerHTML = '<h2>Mes favoris</h2><p class="muted">Vous n\'avez pas encore ajouté de favoris.</p>';
+        return;
+      }
+      const items = favs.map(p => `
+        <div class="account-list-item">
+          ${p.image ? `<img src="${p.image}" alt="${p.name}">` : ''}
+          <div class="account-list-item-main">
+            <div class="account-list-item-title">${p.name}</div>
+            <div class="account-list-item-meta">${p.origin || ''}</div>
+          </div>
+          <div><strong>${money(p.price)}</strong></div>
+        </div>
+      `).join('');
+      box.innerHTML = '<h2>Mes favoris</h2><div class="account-list">' + items + '</div>';
+    }catch(e){
+      box.style.display = 'block';
+      box.innerHTML = '<h2>Mes favoris</h2><p class="muted">Erreur lors du chargement de vos favoris.</p>';
+    }
+  }
+
+  async function init(){
+    const user = await fetchMe();
+    showAccountInfo(user);
+    renderOrderHistory(user);
+    renderFavorites(user);
+
+    document.getElementById('loginBtn').addEventListener('click', async ()=>{
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      try{
+        const res = await fetch('/api/auth-login.php', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({email,password})
+        });
+        const data = await res.json();
+        if(!res.ok || !data.ok){
+          flash('Identifiants invalides', false);
+          return;
+        }
+        flash('Connecté ✅');
+        showAccountInfo(data.user);
+        renderOrderHistory(data.user);
+        renderFavorites(data.user);
+      }catch(e){
+        flash('Erreur de connexion', false);
+      }
+    });
+
+    document.getElementById('registerBtn').addEventListener('click', async ()=>{
+      const name = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const password = document.getElementById('regPassword').value;
+      try{
+        const res = await fetch('/api/auth-register.php', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({name,email,password})
+        });
+        const data = await res.json();
+        if(!res.ok || !data.ok){
+          const err = data.error || 'Erreur inscription';
+          const msg = err === 'email_exists' ? 'Email déjà utilisé' : 'Erreur inscription';
+          flash(msg, false);
+          return;
+        }
+        flash('Compte créé ✅');
+        showAccountInfo(data.user);
+        renderOrderHistory(data.user);
+        renderFavorites(data.user);
+      }catch(e){
+        flash('Erreur inscription', false);
+      }
+    });
+
+    document.addEventListener('click', async (e)=>{
+      const btn = e.target.closest('#logoutBtn');
+      if(!btn) return;
+      try{
+        await fetch('/api/auth-logout.php', {method:'POST'});
+        flash('Déconnecté', true);
+        showAccountInfo(null);
+        renderOrderHistory(null);
+        renderFavorites(null);
+      }catch(e){
+        flash('Erreur déconnexion', false);
+      }
+    });
+  }
+
+  init();
+})();
+</script>
+
+</body>
+</html>
+

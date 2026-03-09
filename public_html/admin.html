@@ -15,62 +15,119 @@
   <h1>Page Gérant</h1>
   <p class="notice">Démo locale : tout est sauvegardé dans votre navigateur (localStorage).</p>
 
-  <h2>Produits</h2>
-  <div class="bar">
-    <button id="add" class="btn primary">+ Nouveau produit</button>
-    <input id="q" class="input" placeholder="Recherche…">
-    <select id="sort">
-      <option value="updated-desc">Modifié récent</option>
-      <option value="name-asc">Nom A–Z</option>
-      <option value="price-asc">Prix ↑</option>
-      <option value="price-desc">Prix ↓</option>
-    </select>
-    <span class="pill" id="count">0</span>
-  </div>
-  <table class="table" id="table">
-    <thead><tr><th>Nom</th><th>Prix</th><th>Catégorie</th><th>Origine</th><th></th></tr></thead>
-    <tbody></tbody>
-  </table>
-
-  <details style="margin-top:18px">
-    <summary>Formulaire produit</summary>
-    <div class="bar">
-      <input id="f-name" class="input" placeholder="Nom">
-      <input id="f-id" class="input" placeholder="id (auto si vide)">
-      <select id="f-category" class="input">
-        <option>Fruits</option><option>Légumes</option>
+  <details id="productsPanel" open>
+    <summary><strong>Produits</strong></summary>
+    <div class="bar" style="margin-top:8px">
+      <button id="add" class="btn primary">+ Nouveau produit</button>
+      <input id="q" class="input" placeholder="Recherche…">
+      <select id="sort" class="js-fancy">
+        <option value="updated-desc">Modifié récent</option>
+        <option value="name-asc">Nom A–Z</option>
+        <option value="price-asc">Prix ↑</option>
+        <option value="price-desc">Prix ↓</option>
       </select>
-      <input id="f-price" class="input" type="number" step="0.01" placeholder="Prix">
+      <span class="pill" id="count">0</span>
     </div>
-    <div class="bar">
-      <input id="f-origin" class="input" placeholder="Origine">
-      <input id="f-unit" class="input" placeholder="Unité">
-      <input id="f-image" class="input" placeholder="Image URL">
-      <input id="f-tags" class="input" placeholder="Tags (séparés par des virgules)">
-      <select id="f-featured" class="input"><option value="false">Favori: Non</option><option value="true">Favori: Oui</option></select>
-      <input id="f-created" class="input" placeholder="YYYY-MM-DD">
+    <div class="bar" style="margin-top:8px">
+      <label>Produit
+        <select id="productSelect" class="input">
+          <option value="">Sélectionner un produit…</option>
+        </select>
+      </label>
     </div>
-    <div class="bar">
-      <button id="save" class="btn primary">💾 Enregistrer</button>
-      <button id="reset" class="btn">Réinitialiser</button>
-      <span id="formMsg" class="pill"></span>
+    <table class="table" id="table">
+      <thead><tr><th>Nom</th><th>Prix</th><th>Catégorie</th><th>Origine</th><th>Dispo</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </details>
+
+  <details class="admin-product-form" style="margin-top:18px">
+    <summary>Formulaire produit</summary>
+    <div class="admin-form-card">
+      <div class="bar">
+        <div class="field">
+          <label class="small" for="f-name">Nom</label>
+          <input id="f-name" class="input" placeholder="Abricot, Banane…">
+        </div>
+        <div class="field">
+          <label class="small" for="f-category">Catégorie</label>
+          <select id="f-category" class="input js-fancy">
+            <option>Fruits</option><option>Légumes</option><option>Herbes</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="small" for="f-price">Prix</label>
+          <input id="f-price" class="input" type="number" step="0.01" placeholder="1,50">
+        </div>
+      </div>
+      <div class="bar">
+        <div class="field">
+          <label class="small" for="f-origin">Origine</label>
+          <input id="f-origin" class="input" placeholder="Espagne, France…">
+        </div>
+        <div class="field">
+          <label class="small" for="f-unit">Unité</label>
+          <input id="f-unit" class="input" placeholder="Au kilo, à la pièce…">
+        </div>
+        <div class="field">
+          <label class="small" for="f-image">Image</label>
+          <input id="f-image" class="input" placeholder="assets/img/abricot.jpg">
+        </div>
+        <label class="field admin-availability">
+          <span class="small">Disponible aujourd’hui</span>
+          <div class="admin-availability-toggle">
+            <input id="f-available" type="checkbox" checked>
+          </div>
+        </label>
+      </div>
+      <div class="bar admin-ripeness-row">
+        <div class="field">
+          <label class="small" for="f-ripeness-enabled">Option de mûreté</label>
+          <select id="f-ripeness-enabled" class="input">
+            <option value="0">Non</option>
+            <option value="1">Oui, laisser le client choisir</option>
+          </select>
+        </div>
+        <div class="field" id="ripeness-choice-wrap" style="display:none">
+          <label class="small" for="f-ripeness">Mûreté par défaut</label>
+          <select id="f-ripeness" class="input">
+            <option value="Mûre">Mûre</option>
+            <option value="Presque mûre">Presque mûre</option>
+            <option value="Pas Mûre">Pas Mûre</option>
+          </select>
+        </div>
+      </div>
+      <div class="bar admin-form-actions">
+        <button id="save" class="btn primary">💾 Enregistrer</button>
+        <button id="reset" class="btn">Réinitialiser</button>
+        <span id="formMsg" class="pill"></span>
+      </div>
     </div>
   </details>
 
   <h2 style="margin-top:32px">Commandes</h2>
   <div id="orders"></div>
 
+  <h2 style="margin-top:32px">Messages de contact</h2>
+  <div id="messages"></div>
+
   </main>
-  <footer class="site">Démo locale – HTML/CSS/JS vanilla</footer>
+  <footer class="site"><a href="assets/Chuntian%20CGV.odt" target="_blank" rel="noopener">CGV</a></footer>
   
 <script>
 
-const ADMIN_TOKEN = 'alphatrio'; // même valeur que dans .env
+async function requireAdminFrontend(){
+  const res = await fetch('/api/auth-me.php');
+  const data = await res.json();
+  if(!data.ok || !data.user || !data.user.is_admin){
+    window.location.href = 'compte.html?from=admin';
+    throw new Error('not_admin');
+  }
+  return data.user;
+}
 
 async function fetchOrders(){
-  const res = await fetch('/api/orders.php?status=pending', {
-    headers:{ 'Authorization':'Bearer ' + ADMIN_TOKEN }
-  });
+  const res = await fetch('/api/orders.php?status=pending');
   const data = await res.json();
   return data.orders || [];
 }
@@ -78,23 +135,45 @@ async function fetchOrders(){
 async function setOrderStatusServer(id, status){
   const res = await fetch('/api/orders.php', {
     method:'POST',
-    headers:{
-      'Content-Type':'application/json',
-      'Authorization':'Bearer ' + ADMIN_TOKEN
-    },
+    headers:{ 'Content-Type':'application/json' },
     body: JSON.stringify({ id, status })
   });
   const data = await res.json();
   if(!data.ok) throw new Error(data.error||'update_failed');
 }
 
-(function(){
+async function saveProductServer(p){
+  const res = await fetch('/api/admin-products.php', {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json' },
+    body: JSON.stringify(p)
+  });
+  const data = await res.json();
+  if(!res.ok || !data.ok) throw new Error(data.error||'product_save_failed');
+}
+
+async function deleteProductServer(id){
+  const res = await fetch('/api/admin-products.php', {
+    method:'DELETE',
+    headers:{ 'Content-Type':'application/json' },
+    body: JSON.stringify({id})
+  });
+  const data = await res.json();
+  if(!res.ok || !data.ok) throw new Error(data.error||'product_delete_failed');
+}
+
+(async function(){
+  try{
+    await requireAdminFrontend();
+  }catch(e){
+    return;
+  }
   // ---- produits table
   let currentId = null;
   const $ = s=>document.querySelector(s);
   function slug(s){ return s.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
-  function renderTable(){
-    let list = loadProducts();
+  async function renderTable(){
+    let list = await getProducts();
     const q = $('#q').value.trim().toLowerCase();
     if(q){ list = list.filter(p => JSON.stringify(p).toLowerCase().includes(q)); }
     switch($('#sort').value){
@@ -110,59 +189,155 @@ async function setOrderStatusServer(id, status){
         <td>${money(p.price)}</td>
         <td>${p.category||''}</td>
         <td>${p.origin||''}</td>
+        <td>
+          <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;">
+            <input type="checkbox" data-available="${p.id}" ${p.available===false?'':'checked'}>
+            <span>${p.available===false?'Indispo':'OK'}</span>
+          </label>
+        </td>
         <td><button data-edit="${p.id}" class="btn">Éditer</button> <button data-del="${p.id}" class="btn danger">Supprimer</button></td>
       </tr>
     `).join('');
+
+    const sel = document.getElementById('productSelect');
+    if(sel){
+      sel.innerHTML = '<option value=\"\">Sélectionner un produit…</option>' +
+        list.map(p => `<option value="${p.id}">${p.name} – ${money(p.price)}</option>`).join('');
+    }
   }
   function resetForm(){
-    currentId=null; $('#f-name').value=''; $('#f-id').value=''; $('#f-category').value='Fruits';
-    $('#f-price').value=''; $('#f-origin').value=''; $('#f-unit').value=''; $('#f-image').value='';
-    $('#f-tags').value=''; $('#f-featured').value='false'; $('#f-created').value = new Date().toISOString().slice(0,10);
+    currentId=null;
+    $('#f-name').value='';
+    $('#f-category').value='Fruits';
+    $('#f-price').value='';
+    $('#f-origin').value='';
+    $('#f-unit').value='';
+    $('#f-image').value='';
+    $('#f-available').checked=true;
+    $('#f-ripeness-enabled').value='0';
+    $('#f-ripeness').value='Mûre';
+    $('#ripeness-choice-wrap').style.display='none';
+  }
+  function toggleRipenessChoice(){
+    $('#ripeness-choice-wrap').style.display = $('#f-ripeness-enabled').value==='1' ? '' : 'none';
   }
   function readForm(){
     const name = $('#f-name').value.trim(); if(!name) throw new Error('Nom requis');
-    const id = $('#f-id').value.trim() || slug(name);
+    const id = currentId || slug(name);
     const price = parseFloat($('#f-price').value); if(Number.isNaN(price)) throw new Error('Prix invalide');
+    const ripenessEnabled = $('#f-ripeness-enabled').value === '1';
     const p = {
       id, name, price,
       category: $('#f-category').value,
       origin: $('#f-origin').value.trim(),
       unit: $('#f-unit').value.trim(),
       image: $('#f-image').value.trim(),
-      tags: $('#f-tags').value.split(',').map(s=>s.trim()).filter(Boolean),
-      featured: $('#f-featured').value==='true',
-      created: $('#f-created').value || new Date().toISOString().slice(0,10),
-      updated: new Date().toISOString()
+      available: $('#f-available').checked,
+      ripeness_enabled: ripenessEnabled,
+      ripeness: ripenessEnabled ? $('#f-ripeness').value : null
     };
     return p;
   }
-  document.getElementById('add').addEventListener('click', ()=>{ resetForm(); document.querySelector('details').open = true; });
+  $('#f-ripeness-enabled').addEventListener('change', toggleRipenessChoice);
+  document.getElementById('add').addEventListener('click', ()=>{
+    resetForm();
+    const panel = document.querySelector('details');
+    if(panel){
+      panel.open = true;
+      panel.scrollIntoView({behavior:'smooth', block:'start'});
+    }
+  });
   document.getElementById('reset').addEventListener('click', resetForm);
-  document.getElementById('save').addEventListener('click', ()=>{
+  document.getElementById('save').addEventListener('click', async ()=>{
     try{
       const p = readForm();
-      const list = loadProducts();
-      const i = list.findIndex(x=>x.id===p.id);
-      if(i>=0) list[i] = {...list[i], ...p}; else list.push(p);
-      saveProducts(list); renderTable(); flash('Sauvegardé ✅');
-    }catch(e){ flash(e.message, false); }
+      await saveProductServer(p);
+      // reset cache pour recharger depuis le serveur
+      window.PRODUCTS_PROMISE = null;
+      await renderTable();
+      flash('Sauvegardé ✅');
+    }catch(e){
+      console.error(e);
+      flash(e.message || 'Erreur sauvegarde', false);
+    }
   });
-  document.getElementById('table').addEventListener('click', e=>{
-    const id = e.target.dataset.edit || e.target.dataset.del; if(!id) return;
-    const list = loadProducts();
+  document.getElementById('table').addEventListener('click', async (e)=>{
+    const btnEdit = e.target.closest('button[data-edit]');
+    const btnDel = e.target.closest('button[data-del]');
+    const btn = btnEdit || btnDel;
+    if(!btn) return;
+    const id = btn.dataset.edit || btn.dataset.del;
+    const list = await getProducts();
     const i = list.findIndex(x=>x.id===id); if(i<0) return;
-    if(e.target.dataset.del){
-      if(confirm('Supprimer ?')){ list.splice(i,1); saveProducts(list); renderTable(); }
+    if(btnDel){
+      if(!confirm('Supprimer ?')) return;
+      try{
+        await deleteProductServer(id);
+        window.PRODUCTS_PROMISE = null;
+        await renderTable();
+        flash('Produit supprimé ✅');
+      }catch(err){
+        console.error(err);
+        flash('Erreur suppression', false);
+      }
       return;
     }
     // edit
-    const p = list[i]; currentId = id;
-    $('#f-name').value = p.name||''; $('#f-id').value = p.id||''; $('#f-category').value = p.category||'Fruits';
+    const p = list[i]; currentId = p.id;
+    $('#f-name').value = p.name||''; $('#f-category').value = p.category||'Fruits';
     $('#f-price').value = p.price??''; $('#f-origin').value = p.origin||''; $('#f-unit').value = p.unit||'';
-    $('#f-image').value = p.image||''; $('#f-tags').value = (p.tags||[]).join(', '); $('#f-featured').value = p.featured? 'true':'false';
-    $('#f-created').value = (p.created||new Date().toISOString()).slice(0,10);
-    document.querySelector('details').open = true;
+    $('#f-image').value = p.image||'';
+    $('#f-available').checked = p.available !== false;
+    $('#f-ripeness-enabled').value = p.ripeness_enabled ? '1' : '0';
+    $('#f-ripeness').value = p.ripeness || 'Mûre';
+    toggleRipenessChoice();
+    const panel = document.querySelector('details');
+    if(panel){
+      panel.open = true;
+      panel.scrollIntoView({behavior:'smooth', block:'start'});
+    }
   });
+  document.getElementById('table').addEventListener('change', async (e)=>{
+    const cb = e.target.closest('input[data-available]');
+    if(!cb) return;
+    const id = cb.dataset.available;
+    const list = await getProducts();
+    const p = list.find(x=>x.id===id);
+    if(!p) return;
+    const updated = { ...p, available: cb.checked };
+    try{
+      await saveProductServer(updated);
+      window.PRODUCTS_PROMISE = null;
+      await renderTable();
+      flash(cb.checked ? 'Produit marqué disponible' : 'Produit marqué indisponible');
+    }catch(err){
+      console.error(err);
+      flash('Erreur mise à jour dispo', false);
+    }
+  });
+  const productSelect = document.getElementById('productSelect');
+  if(productSelect){
+    productSelect.addEventListener('change', async (e)=>{
+      const id = e.target.value;
+      if(!id) return;
+      const list = await getProducts();
+      const p = list.find(x=>x.id===id);
+      if(!p) return;
+      currentId = p.id;
+      $('#f-name').value = p.name||''; $('#f-category').value = p.category||'Fruits';
+      $('#f-price').value = p.price??''; $('#f-origin').value = p.origin||''; $('#f-unit').value = p.unit||'';
+      $('#f-image').value = p.image||'';
+      $('#f-available').checked = p.available !== false;
+      $('#f-ripeness-enabled').value = p.ripeness_enabled ? '1' : '0';
+      $('#f-ripeness').value = p.ripeness || 'Mûre';
+      toggleRipenessChoice();
+      const panel = document.querySelector('details');
+      if(panel){
+        panel.open = true;
+        panel.scrollIntoView({behavior:'smooth', block:'start'});
+      }
+    });
+  }
   $('#q').addEventListener('input', renderTable); $('#sort').addEventListener('change', renderTable);
   renderTable();
 
@@ -180,7 +355,10 @@ async function setOrderStatusServer(id, status){
       </div>
       <div class="bar"><span>${o.customer_name||''} – ${o.customer_email||''}</span></div>
       <div class="bar">Mode: <strong>${o.mode}</strong> – Créneau: ${o.slot? new Date(o.slot).toLocaleString('fr-FR'):'n/a'}</div>
-      <ul>${(JSON.parse(o.cart)||[]).map(it=> `<li>${it.qty} × ${it.id} – ${(it.price_cents/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'})}</li>`).join('')}</ul>
+      <ul>${(JSON.parse(o.cart)||[]).map(it=> {
+        const ripeness = it.ripeness ? ` (${it.ripeness})` : '';
+        return `<li>${it.qty} × ${it.id}${ripeness} – ${(it.price_cents/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'})}</li>`;
+      }).join('')}</ul>
       <div class="bar"><strong>Total: ${(o.amount_cents/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'})}</strong></div>
       <div class="bar">
         <button class="btn" data-acc="${o.id}">Accepter</button>
@@ -207,6 +385,64 @@ document.getElementById('orders').addEventListener('click', async (e)=>{
 
 // appel initial
 renderOrders();
+
+// ---- messages de contact
+async function fetchMessages(){
+  const res = await fetch('/api/contact.php');
+  const data = await res.json();
+  return data.messages || [];
+}
+
+async function renderMessages(){
+  const root = document.getElementById('messages');
+  try{
+    const messages = await fetchMessages();
+    if(!messages.length){
+      root.innerHTML = '<p>Aucun message.</p>';
+      return;
+    }
+    root.innerHTML = messages.map(m => `
+      <div class="card" style="position:relative;padding:12px;margin:8px 0">
+        <button class="btn danger" data-delmsg="${m.id}" style="position:absolute;top:8px;right:8px">Supprimer</button>
+        <div class="bar">
+          <strong>${m.name}</strong>
+          <span class="muted">${m.email}</span>
+          <span class="muted">${new Date(m.created_at).toLocaleString('fr-FR')}</span>
+        </div>
+        <p>${(m.message||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p>
+      </div>
+    `).join('');
+  }catch(e){
+    console.error(e);
+    root.innerHTML = '<p class="muted">Erreur lors du chargement des messages.</p>';
+  }
+}
+
+renderMessages();
+
+document.getElementById('messages').addEventListener('click', async (e)=>{
+  const btn = e.target.closest('[data-delmsg]');
+  if(!btn) return;
+  const id = btn.dataset.delmsg;
+  if(!confirm('Supprimer ce message ?')) return;
+  try{
+    const res = await fetch('/api/contact.php', {
+      method:'DELETE',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({id})
+    });
+    const data = await res.json();
+    if(!res.ok || !data.ok){
+      flash('Erreur suppression', false);
+      return;
+    }
+    flash('Message supprimé ✅');
+    renderMessages();
+  }catch(err){
+    console.error(err);
+    flash('Erreur réseau', false);
+  }
+});
 
 })();
 </script>

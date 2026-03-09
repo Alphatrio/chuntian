@@ -12,33 +12,68 @@
   <script>mountHeader("contact");</script>
   <main class="container">
   
-  <h1>Contact</h1>
-  <div class="bar">
-    <input id="name" class="input" placeholder="Nom">
-    <input id="email" class="input" placeholder="Email">
-  </div>
-  <div class="section">
-    <textarea id="message" class="input" placeholder="Votre message…"></textarea>
-  </div>
-  <button id="send" class="btn primary">Envoyer</button>
-  <p class="muted">Les messages sont stockés localement (démo).</p>
+  <section class="contact-page">
+    <h1>Contact</h1>
+    <p class="muted" style="margin-bottom:16px">
+      Une question, une commande spéciale ou un retour&nbsp;? Écrivez-nous, nous vous répondrons rapidement.
+    </p>
+
+    <div class="contact-card">
+      <div class="bar contact-row">
+        <div class="field">
+          <label for="name">Nom</label>
+          <input id="name" class="input" placeholder="Votre nom">
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" class="input" placeholder="vous@example.com">
+        </div>
+      </div>
+      <div class="field">
+        <label for="message">Message</label>
+        <textarea id="message" class="input" placeholder="Votre message…"></textarea>
+      </div>
+      <div class="bar" style="justify-content:center;margin-top:8px">
+        <button id="send" class="btn primary">Envoyer</button>
+      </div>
+      <p class="muted small-note">Les messages sont envoyés à la boutique et visibles dans votre espace gérant.</p>
+    </div>
+  </section>
 
   </main>
-  <footer class="site">Démo locale – HTML/CSS/JS vanilla</footer>
+  <footer class="site"><a href="assets/Chuntian%20CGV.odt" target="_blank" rel="noopener">CGV</a></footer>
   
 <script>
 (function(){
-  document.getElementById('send').addEventListener('click', ()=>{
-    const msg = {
+  async function sendMessage(){
+    const payload = {
       name: document.getElementById('name').value.trim(),
       email: document.getElementById('email').value.trim(),
-      message: document.getElementById('message').value.trim(),
-      created: new Date().toISOString()
+      message: document.getElementById('message').value.trim()
     };
-    if(!msg.name || !msg.email || !msg.message){ flash('Champs requis', false); return; }
-    const msgs = LS.get('messages', []); msgs.push(msg); LS.set('messages', msgs);
-    flash('Message envoyé ✅'); document.getElementById('message').value='';
-  });
+    if(!payload.name || !payload.email || !payload.message){
+      flash('Champs requis', false);
+      return;
+    }
+    try{
+      const res = await fetch('/api/contact.php', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json().catch(()=>({ok:false}));
+      if(!res.ok || !data.ok){
+        flash('Erreur lors de l’envoi', false);
+        return;
+      }
+      flash('Message envoyé ✅');
+      document.getElementById('message').value='';
+    }catch(e){
+      flash('Erreur réseau', false);
+    }
+  }
+
+  document.getElementById('send').addEventListener('click', sendMessage);
 })();
 </script>
 

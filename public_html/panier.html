@@ -12,43 +12,91 @@
   <script>mountHeader("");</script>
   <main class="container">
   
-  <h1>Mon panier</h1>
-  <div id="cart"></div>
-  <div class="bar" style="margin-top:16px">
-    <a class="btn" href="index.html">Continuer mes achats</a>
-    <a class="btn primary" id="toCheckout">Passer au paiement</a>
-  </div>
+  <section class="cart-page">
+    <h1>Mon panier</h1>
+    <p class="muted intro">
+      Retrouvez ici le détail de vos fruits et légumes sélectionnés. Vous pouvez ajuster les quantités avant de passer au paiement.
+    </p>
+
+    <div class="cart-layout">
+      <div id="cart"></div>
+      <aside class="cart-summary">
+        <h2>Récapitulatif</h2>
+        <div id="cartTotal"></div>
+        <div class="cart-actions">
+          <a class="btn" href="index.html">Continuer mes achats</a>
+          <a class="btn primary" id="toCheckout">Passer au paiement</a>
+        </div>
+      </aside>
+    </div>
+  </section>
 
   </main>
-  <footer class="site">Démo locale – HTML/CSS/JS vanilla</footer>
+  <footer class="site"><a href="assets/Chuntian%20CGV.odt" target="_blank" rel="noopener">CGV</a></footer>
   
 <script>
 (function(){
-  function render(){
+  async function render(){
     const el = document.getElementById('cart');
     const cart = getCart();
-    if(!cart.length){ el.innerHTML = '<p>Panier vide.</p>'; return; }
-    const lines = cart.map(it => {
-      const p = findProduct(it.id);
+    const totalEl = document.getElementById('cartTotal');
+    if(!cart.length){
+      el.innerHTML = '<p class="muted">Votre panier est vide.</p>';
+      if(totalEl) totalEl.innerHTML = '';
+      return;
+    }
+
+    const products = await Promise.all(cart.map(it => findProduct(it.id)));
+
+    const lines = cart.map((it, idx) => {
+      const p = products[idx];
       if(!p) return '';
       const subtotal = p.price * it.qty;
-      return `<div class="card" style="padding:12px;margin:8px 0;display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center">
-        <div><strong>${p.name}</strong><div class="muted">${p.unit||''}</div></div>
+      const ripeness = it.ripeness || null;
+      const ripenessLabel = ripeness ? `<div class="muted">Mûreté : ${ripeness}</div>` : '';
+      return `<div class="card" style="padding:12px;margin:8px 0;display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center">
+        <div><strong>${p.name}</strong><div class="muted">${p.unit||''}</div>${ripenessLabel}</div>
         <div>
-          <input type="number" min="0" value="${it.qty}" data-qty="${p.id}" style="width:80px" />
+          <input type="number" min="0" value="${it.qty}" data-qty-id="${p.id}" data-qty-ripeness="${ripeness??''}" style="width:80px" />
         </div>
         <div><strong>${money(subtotal)}</strong></div>
+        <div><button class="btn" data-remove-id="${p.id}" data-remove-ripeness="${ripeness??''}">Supprimer</button></div>
       </div>`;
     }).join("");
-    const total = cart.reduce((s,it)=>{
-      const p = findProduct(it.id); return s + (p? p.price*it.qty : 0);
+
+    const total = cart.reduce((s,it,idx)=>{
+      const p = products[idx]; return s + (p? p.price*it.qty : 0);
     },0);
-    el.innerHTML = lines + `<h3>Total : ${money(total)}</h3>`;
+    el.innerHTML = lines;
+    if(totalEl){
+      totalEl.innerHTML = `
+        <p><strong>Total : ${money(total)}</strong></p>
+        <button class="btn" data-clear-cart style="margin-top:8px;width:100%">Vider le panier</button>
+      `;
+    }
   }
   document.addEventListener('input', e=>{
-    const inp = e.target.closest('[data-qty]'); if(!inp) return;
-    const id = inp.dataset.qty; const qty = parseInt(inp.value||'0',10);
-    setQty(id, qty); render();
+    const inp = e.target.closest('[data-qty-id]'); if(!inp) return;
+    const id = inp.dataset.qtyId;
+    const ripeness = inp.dataset.qtyRipeness || null;
+    const qty = parseInt(inp.value||'0',10);
+    setQty(id, qty, ripeness);
+    render();
+  });
+  document.addEventListener('click', e=>{
+    const removeBtn = e.target.closest('[data-remove-id]');
+    if(removeBtn){
+      const id = removeBtn.dataset.removeId;
+      const ripeness = removeBtn.dataset.removeRipeness || null;
+      setQty(id, 0, ripeness);
+      render();
+      return;
+    }
+    const clearBtn = e.target.closest('[data-clear-cart]');
+    if(clearBtn){
+      clearCart();
+      render();
+    }
   });
   document.getElementById('toCheckout').addEventListener('click', ()=>{
     if(!getCart().length){ flash('Panier vide', false); return; }
