@@ -173,7 +173,9 @@
           headers:{'Content-Type':'application/json'},
           body: JSON.stringify({email,password})
         });
-        const data = await res.json();
+        const text = await res.text();
+        let data = {};
+        try{ data = JSON.parse(text); }catch(_){ console.error('Login response not JSON:', text); flash('Erreur serveur (réponse invalide). Vérifier la console.', false); return; }
         if(!res.ok || !data.ok){
           flash('Identifiants invalides', false);
           return;
@@ -183,7 +185,8 @@
         renderOrderHistory(data.user);
         renderFavorites(data.user);
       }catch(e){
-        flash('Erreur de connexion', false);
+        console.error('Login error', e);
+        flash('Erreur de connexion: ' + (e?.message || 'réseau'), false);
       }
     });
 
@@ -197,10 +200,12 @@
           headers:{'Content-Type':'application/json'},
           body: JSON.stringify({name,email,password})
         });
-        const data = await res.json();
+        const text = await res.text();
+        let data = {};
+        try{ data = JSON.parse(text); }catch(_){ console.error('Register response not JSON:', text); flash('Erreur serveur (réponse invalide). Vérifier la console (F12).', false); return; }
         if(!res.ok || !data.ok){
           const err = data.error || 'Erreur inscription';
-          const msg = err === 'email_exists' ? 'Email déjà utilisé' : 'Erreur inscription';
+          const msg = err === 'email_exists' ? 'Email déjà utilisé' : (data.message || err);
           flash(msg, false);
           return;
         }
@@ -209,7 +214,8 @@
         renderOrderHistory(data.user);
         renderFavorites(data.user);
       }catch(e){
-        flash('Erreur inscription', false);
+        console.error('Register error', e);
+        flash('Erreur inscription: ' + (e?.message || 'réseau'), false);
       }
     });
 

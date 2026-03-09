@@ -2,8 +2,15 @@
 // api/bootstrap.php
 declare(strict_types=1);
 
-// Sessions for authentication
+// Sessions for authentication (use a writable path so it works after clone)
 if (session_status() === PHP_SESSION_NONE) {
+  $sessionDir = __DIR__ . '/../storage/sessions';
+  if (!is_dir($sessionDir)) {
+    @mkdir($sessionDir, 0755, true);
+  }
+  if (is_dir($sessionDir) && is_writable($sessionDir)) {
+    session_save_path($sessionDir);
+  }
   session_start();
 }
 
