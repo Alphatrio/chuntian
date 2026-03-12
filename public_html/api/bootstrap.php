@@ -171,7 +171,9 @@ function recalc_amount(array $cart, array $catalog): array {
 }
 
 function store_opening(): array {
-  $default = '{"Mon":["09:00","19:00"],"Tue":["09:00","19:00"],"Wed":["09:00","19:00"],"Thu":["09:00","19:00"],"Fri":["09:00","19:00"],"Sat":["09:00","18:00"],"Sun":null}';
+  // Plage générique d'ouverture de la boutique (10h-17h tous les jours).
+  // Les créneaux clients (10‑13h, 14‑17h) sont gérés plus finement dans make_slots_for_date().
+  $default = '{"Mon":["10:00","17:00"],"Tue":["10:00","17:00"],"Wed":["10:00","17:00"],"Thu":["10:00","17:00"],"Fri":["10:00","17:00"],"Sat":["10:00","17:00"],"Sun":["10:00","17:00"]}';
   $json = trim((string) env('STORE_OPENING_JSON', $default));
   if ($json !== '' && $json[0] !== '{') {
     $json = $default;
@@ -183,19 +185,18 @@ function store_opening(): array {
 function make_slots_for_date(string $ymd): array {
   $date = new DateTimeImmutable($ymd);
   $dow = $date->format('D'); // Mon, Tue...
-  $map = store_opening();
-  $range = $map[$dow] ?? null;
-  if (!$range) return [];
-  [$start, $end] = $range;
-  [$sh,$sm] = array_map('intval', explode(':', $start));
-  [$eh,$em] = array_map('intval', explode(':', $end));
-  $step = (int) env('STORE_SLOT_EVERY_MIN', 30);
+
+  // Créneaux clients fixes, valables tous les jours :
+  // 10h-11h, 11h-12h, 12h-13h et 14h-15h, 15h-16h, 16h-17h.
+  $allowedDays = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  if (!in_array($dow, $allowedDays, true)) {
+    return [];
+  }
+  $hours = [10, 11, 12, 14, 15, 16];
   $slots = [];
-  $t = $date->setTime($sh,$sm);
-  $endT = $date->setTime($eh,$em);
-  while ($t < $endT) {
+  foreach ($hours as $h) {
+    $t = $date->setTime($h, 0);
     $slots[] = $t->format(DateTimeInterface::ATOM); // ISO8601
-    $t = $t->modify("+{$step} minutes");
   }
   return $slots;
 }

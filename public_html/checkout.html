@@ -186,8 +186,8 @@
         const options = available.map(s => {
           const d = new Date(s.iso);
           const hh = String(d.getHours()).padStart(2,'0');
-          const mm = String(d.getMinutes()).padStart(2,'0');
-          return `<option value="${s.iso}">${hh}:${mm}</option>`;
+          const endH = String((d.getHours()+1)).padStart(2,'0');
+          return `<option value="${s.iso}">${hh}h-${endH}h</option>`;
         }).join('');
         slotEl.innerHTML = options || '<option value="">Aucun créneau disponible</option>';
         // Sélectionner automatiquement le premier créneau disponible si présent

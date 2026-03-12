@@ -1,4 +1,4 @@
-const STORE={name:"Chun Tian (démo)",address:"151 Rue Jean Jaurès, 94800 Villejuif, France",coords:{lat:48.792716,lon:2.359279},delivery_km:5,openingHours:{Mon:["09:00","19:00"],Tue:["09:00","19:00"],Wed:["09:00","19:00"],Thu:["09:00","19:00"],Fri:["09:00","19:00"],Sat:["09:00","18:00"],Sun:null},slotEveryMinutes:30};
+const STORE={name:"Chun Tian (démo)",address:"151 Rue Jean Jaurès, 94800 Villejuif, France",coords:{lat:48.792716,lon:2.359279},delivery_km:5,openingHours:{Mon:["10:00","17:00"],Tue:["10:00","17:00"],Wed:["10:00","17:00"],Thu:["10:00","17:00"],Fri:["10:00","17:00"],Sat:["10:00","17:00"],Sun:["10:00","17:00"]},slotEveryMinutes:60};
 const LS={get(k,f){try{const v=localStorage.getItem(k);return v?JSON.parse(v):f}catch{return f}},set(k,v){localStorage.setItem(k,JSON.stringify(v))}};
 async function loadProducts(){try{const r=await fetch("/api/products.php",{cache:"no-store"});if(r.ok){const j=await r.json();if(j&&j.ok&&Array.isArray(j.products))return j.products}}catch{}try{const raw=localStorage.getItem("products");if(raw){const p=JSON.parse(raw);if(Array.isArray(p))return p}}catch{}try{const r=await fetch("assets/products.json",{cache:"no-store"});const p=await r.json();if(Array.isArray(p))return p}catch{}return[]}
 let PRODUCTS_PROMISE;function getProducts(){return PRODUCTS_PROMISE??=(loadProducts())}
@@ -267,11 +267,18 @@ function mountHeader(active=""){
 function mountFooter(){
   document.body.insertAdjacentHTML("beforeend", `
     <footer class="site">
-      <a href="mentions-legales.html">Mentions légales</a> ·
-      <a href="cgv.html">C.G.V.</a> ·
-      <a href="conditions-utilisation.html">Conditions d'utilisation</a> ·
-      <a href="politique-confidentialite.html">Politique de confidentialité</a> ·
-      <a href="politique-remboursement.html">Politique de remboursement</a>
+      <div class="footer-contact">
+        <span>Tél. : 06 51 43 23 08</span> ·
+      <span>Email : <a href="mailto:chuntian94800@gmail.com">chuntian94800@gmail.com</a></span>
+        <span>151 Rue Jean Jaurès 94800 Villejuif, France</span> ·
+      </div>
+      <div class="footer-links">
+        <a href="mentions-legales.html">Mentions légales</a> ·
+        <a href="cgv.html">C.G.V.</a> ·
+        <a href="conditions-utilisation.html">Conditions d'utilisation</a> ·
+        <a href="politique-confidentialite.html">Politique de confidentialité</a> ·
+        <a href="politique-remboursement.html">Politique de remboursement</a>
+      </div>
     </footer>
   `);
 }
