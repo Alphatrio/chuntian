@@ -32,8 +32,7 @@
   </section>
 
   </main>
-  <footer class="site"><a href="assets/Chuntian%20CGV.odt" target="_blank" rel="noopener">CGV</a></footer>
-  
+  <script>mountFooter();</script>
 <script>
 (function(){
   async function render(){
@@ -51,21 +50,36 @@
     const lines = cart.map((it, idx) => {
       const p = products[idx];
       if(!p) return '';
-      const subtotal = p.price * it.qty;
+      const variantLabel = it.variant || null;
+      let unitPrice = p.price;
+      if(variantLabel && Array.isArray(p.variants) && p.variants.length){
+        const v = p.variants.find(x=>(x.label||'')===variantLabel);
+        if(v) unitPrice = v.price ?? (v.price_cents/100);
+      }
+      const subtotal = unitPrice * it.qty;
       const ripeness = it.ripeness || null;
       const ripenessLabel = ripeness ? `<div class="muted">Mûreté : ${ripeness}</div>` : '';
+      const variantLabelHtml = variantLabel ? `<div class="muted">Format : ${variantLabel}</div>` : '';
       return `<div class="card" style="padding:12px;margin:8px 0;display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center">
-        <div><strong>${p.name}</strong><div class="muted">${p.unit||''}</div>${ripenessLabel}</div>
+        <div><strong>${p.name}</strong>${variantLabelHtml}<div class="muted">${p.unit||''}</div>${ripenessLabel}</div>
         <div>
-          <input type="number" min="0" value="${it.qty}" data-qty-id="${p.id}" data-qty-ripeness="${ripeness??''}" style="width:80px" />
+          <input type="number" min="0" value="${it.qty}" data-qty-id="${p.id}" data-qty-ripeness="${ripeness??''}" data-qty-variant="${variantLabel??''}" style="width:80px" />
         </div>
         <div><strong>${money(subtotal)}</strong></div>
-        <div><button class="btn" data-remove-id="${p.id}" data-remove-ripeness="${ripeness??''}">Supprimer</button></div>
+        <div><button class="btn" data-remove-id="${p.id}" data-remove-ripeness="${ripeness??''}" data-remove-variant="${variantLabel??''}">Supprimer</button></div>
       </div>`;
     }).join("");
 
     const total = cart.reduce((s,it,idx)=>{
-      const p = products[idx]; return s + (p? p.price*it.qty : 0);
+      const p = products[idx];
+      if(!p) return s;
+      let unitPrice = p.price;
+      const variantLabel = it.variant || null;
+      if(variantLabel && Array.isArray(p.variants) && p.variants.length){
+        const v = p.variants.find(x=>(x.label||'')===variantLabel);
+        if(v) unitPrice = v.price ?? (v.price_cents/100);
+      }
+      return s + unitPrice*it.qty;
     },0);
     el.innerHTML = lines;
     if(totalEl){
@@ -79,8 +93,9 @@
     const inp = e.target.closest('[data-qty-id]'); if(!inp) return;
     const id = inp.dataset.qtyId;
     const ripeness = inp.dataset.qtyRipeness || null;
+    const variant = inp.dataset.qtyVariant || null;
     const qty = parseInt(inp.value||'0',10);
-    setQty(id, qty, ripeness);
+    setQty(id, qty, ripeness, variant);
     render();
   });
   document.addEventListener('click', e=>{
@@ -88,7 +103,8 @@
     if(removeBtn){
       const id = removeBtn.dataset.removeId;
       const ripeness = removeBtn.dataset.removeRipeness || null;
-      setQty(id, 0, ripeness);
+      const variant = removeBtn.dataset.removeVariant || null;
+      setQty(id, 0, ripeness, variant);
       render();
       return;
     }

@@ -30,8 +30,8 @@
   <section id="grid" class="grid"></section>
 
   </main>
-  <footer class="site"><a href="assets/Chuntian%20CGV.odt" target="_blank" rel="noopener">CGV</a></footer>
   <script>document.body.dataset.category="Herbes";</script>
+  <script>mountFooter();</script>
   <script>
     (async function(){
       if(window.initFancySelects){ initFancySelects(); }
@@ -43,7 +43,7 @@
         const grid = document.getElementById('grid');
         const q = qInput.value.trim().toLowerCase();
         const sort = sortSel.value;
-        let list = (await getProducts()).filter(p => p.category===category && (p.available ?? true));
+        let list = (await getProducts()).filter(p => hasCategory(p, category) && (p.available ?? true));
         if(q){ list = list.filter(p => (p.name+p.origin).toLowerCase().includes(q)); }
         switch(sort){
           case "fav":
@@ -75,11 +75,17 @@
         if(addBtn){
           const card = addBtn.closest('[data-product-id]');
           let ripeness = null;
+          let variant = null;
+          let qty = 1;
           if(card){
             const sel = card.querySelector('select[data-ripeness]');
             if(sel) ripeness = sel.value || null;
+            const variantSel = card.querySelector('select[data-variant]');
+            if(variantSel) variant = variantSel.value || null;
+            const qtyEl = card.querySelector('[data-qty-value]');
+            if(qtyEl) qty = parseInt(qtyEl.textContent, 10) || 1;
           }
-          addToCart(addBtn.dataset.add, 1, ripeness);
+          addToCart(addBtn.dataset.add, qty, ripeness, variant);
           flash("Ajouté au panier ✅");
           return;
         }

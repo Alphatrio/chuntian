@@ -15,7 +15,7 @@
   <section class="checkout-page">
     <h1>Paiement</h1>
     <p class="muted intro">
-      Renseignez vos coordonnées et choisissez votre mode de retrait. Le paiement est simulé pour cette démo.
+      Renseignez vos coordonnées et choisissez votre mode de retrait.
     </p>
 
     <div class="checkout-layout">
@@ -24,34 +24,62 @@
           <h2>Coordonnées</h2>
           <div class="checkout-row">
             <div class="field">
-              <label for="name">Nom et prénom</label>
-              <input id="name" class="input" placeholder="Nom et prénom">
+              <label for="name">Nom et prénom <span class="required">*</span></label>
+              <input id="name" class="input" placeholder="Nom et prénom" required>
             </div>
             <div class="field">
-              <label for="email">Email</label>
-              <input id="email" class="input" placeholder="vous@example.com">
+              <label for="email">Email <span class="required">*</span></label>
+              <input id="email" class="input" type="email" placeholder="vous@example.com" required>
             </div>
             <div class="field">
-              <label for="phone">Téléphone</label>
-              <input id="phone" class="input" placeholder="Téléphone">
+              <label for="phone">Téléphone <span class="required">*</span></label>
+              <input id="phone" class="input" type="tel" placeholder="06 12 34 56 78" required>
             </div>
           </div>
         </div>
 
-        <div class="checkout-card">
+        <div class="checkout-card checkout-mode-card">
           <h2>Mode de retrait</h2>
-          <div class="checkout-row mode-row">
-            <label><input type="radio" name="mode" value="cc" checked> Click & Collect</label>
-            <label><input type="radio" name="mode" value="livraison"> Livraison (≤ 5 km)</label>
+          <div class="mode-choices">
+            <label class="mode-choice">
+              <input type="radio" name="mode" value="cc" checked>
+              <span class="mode-choice-title">Click & Collect</span>
+              <span class="mode-choice-desc">Retirez votre commande au magasin</span>
+            </label>
+            <label class="mode-choice">
+              <input type="radio" name="mode" value="livraison">
+              <span class="mode-choice-title">Livraison (≤ 5 km)</span>
+              <span class="mode-choice-desc">Livraison à venir chercher en bas de chez vous.</span>
+            </label>
           </div>
-          <div id="slotArea"></div>
+          <div id="slotArea" class="slot-area"></div>
         </div>
 
         <div class="checkout-card">
+          <h2>Notes de commande</h2>
+          <div class="field">
+            <label for="notes">Commentaires ou demandes spéciales</label>
+            <textarea id="notes" class="input" rows="3" placeholder="Instructions, allergies, préférences…"></textarea>
+          </div>
+        </div>
+
+        <div class="checkout-card">
+          <h2>Consentement</h2>
+          <label class="checkout-consent">
+            <input type="checkbox" id="contactConsent" required>
+            <span>J'accepte d'être contacté dans le cadre de ma commande <span class="required">*</span></span>
+          </label>
+          <label class="checkout-consent">
+            <input type="checkbox" id="rememberContact">
+            <span>Enregistrer mes coordonnées pour une prochaine commande</span>
+          </label>
+        </div>
+
+        <div class="checkout-card checkout-pay-card">
           <h2>Paiement</h2>
-          <p class="muted small-note">Sur cette version démo, le paiement est simulé pour créer la commande.</p>
-          <div class="bar" style="justify-content:center;margin-top:8px">
-            <button class="btn primary" id="pay">Payer (simulation)</button>
+    
+          <div class="checkout-pay-actions">
+            <button class="btn primary" id="pay">Payer</button>
           </div>
         </div>
       </div>
@@ -64,10 +92,20 @@
   </section>
 
   </main>
-  <footer class="site"><a href="assets/Chuntian%20CGV.odt" target="_blank" rel="noopener">CGV</a></footer>
-  
+  <script>mountFooter();</script>
 <script>
 (function(){
+  // Calculer dynamiquement la hauteur du header pour positionner le récap panier
+  try{
+    const header = document.querySelector('header.site');
+    if(header){
+      const h = header.offsetHeight || 0;
+      const extra = 16; // petit espace
+      document.documentElement.style.setProperty('--header-offset', (h + extra) + 'px');
+    }
+  }catch(e){
+    // silencieux si problème, on garde la valeur CSS par défaut
+  }
   // Préremplir les coordonnées si l'utilisateur est connecté
   (async function prefillCustomerFromAccount(){
     try{
@@ -77,48 +115,92 @@
       if(!user) return;
       const nameEl = document.getElementById('name');
       const emailEl = document.getElementById('email');
+      const phoneEl = document.getElementById('phone');
+      const rememberEl = document.getElementById('rememberContact');
       if(nameEl && !nameEl.value){ nameEl.value = user.name || ''; }
       if(emailEl && !emailEl.value){ emailEl.value = user.email || ''; }
+      if(phoneEl && !phoneEl.value && user.phone){ phoneEl.value = user.phone; }
+      if(rememberEl && user.remember_contact){ rememberEl.checked = true; }
     }catch(e){
       // silencieux : on garde le formulaire vide si erreur
     }
   })();
   function slotPicker(mode){
     const root = document.getElementById('slotArea');
-    const tomorrow = new Date(); if(tomorrow.getHours() >= 18){ tomorrow.setDate(tomorrow.getDate()+1); }
-    function dateInput(d){ return d.toISOString().slice(0,10); }
+    // J+1 minimum (pas de livraison le jour même), 7 prochains jours max
+    const now = new Date();
+    const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    const maxDate = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate() + 6);
+    // Format AAAA-MM-JJ en se basant sur la date locale (pas l'UTC)
+    function dateInput(d){
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2,'0');
+      const day = String(d.getDate()).padStart(2,'0');
+      return `${y}-${m}-${day}`;
+    }
+    const minStr = dateInput(tomorrow);
+    const maxStr = dateInput(maxDate);
     root.innerHTML = `
-      <div class="checkout-row">
-        <div class="field">
-          <label for="day">Date souhaitée</label>
-          <input id="day" type="date" class="input" value="${dateInput(tomorrow)}">
-        </div>
-        <div class="field">
-          <label for="slot">Créneau</label>
-          <select id="slot" class="input js-fancy"></select>
+      <div class="slot-row">
+        <p class="slot-row-label">Quand souhaitez-vous récupérer ou recevoir votre commande ? <span class="muted">(J+1 à J+7)</span></p>
+        <div class="checkout-row slot-fields">
+          <div class="field">
+            <label for="day">Date <span class="required">*</span></label>
+            <input id="day" type="date" class="input" value="${minStr}" min="${minStr}" max="${maxStr}" required>
+          </div>
+          <div class="field">
+            <label for="slot">Créneau <span class="required">*</span></label>
+            <select id="slot" class="input js-fancy" required></select>
+          </div>
         </div>
       </div>
       ${mode==='livraison' ? `
-      <div class="checkout-row">
-        <button class="btn" id="loc">📍 Utiliser ma position</button>
-        <div class="field">
-          <label for="addr">Adresse de livraison</label>
-          <input id="addr" class="input" placeholder="Adresse (optionnelle si géolocalisation)">
+      <div class="checkout-row delivery-addr-row">
+        <button type="button" class="btn btn-ghost" id="loc">📍 Utiliser ma position</button>
+        <div class="field field-addr">
+          <label for="addr">Adresse de livraison <span class="required">*</span></label>
+          <input id="addr" class="input" placeholder="Adresse complète" required>
         </div>
-        <span id="km" class="pill" style="display:none"></span>
+        <span id="km" class="pill km-badge" style="display:none"></span>
       </div>`:''}
     `;
-    function fillSlots(){
-      const d = new Date(document.getElementById('day').value);
-      const options = makeSlots(d).map(t=>{
-        const hh = String(t.getHours()).padStart(2,'0');
-        const mm = String(t.getMinutes()).padStart(2,'0');
-        return `<option value="${t.toISOString()}">${hh}:${mm}</option>`;
-      }).join("");
-      document.getElementById('slot').innerHTML = options || '<option>Aucun créneau (fermé)</option>';
+    async function fillSlots(){
+      const dayEl = document.getElementById('day');
+      const slotEl = document.getElementById('slot');
+      if(!dayEl || !slotEl) return;
+      const ymd = dayEl.value;
+      slotEl.innerHTML = '<option value="">Chargement…</option>';
+      if(window.initFancySelects){ initFancySelects(root); }
+      function refreshSlotDisplay(){
+        slotEl.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      try{
+        const res = await fetch('api/slots.php?date=' + encodeURIComponent(ymd));
+        const data = await res.json();
+        if(!data.ok || !Array.isArray(data.slots)){
+          slotEl.innerHTML = '<option value="">Aucun créneau</option>';
+          refreshSlotDisplay();
+          return;
+        }
+        const available = data.slots.filter(s => s.available);
+        const options = available.map(s => {
+          const d = new Date(s.iso);
+          const hh = String(d.getHours()).padStart(2,'0');
+          const mm = String(d.getMinutes()).padStart(2,'0');
+          return `<option value="${s.iso}">${hh}:${mm}</option>`;
+        }).join('');
+        slotEl.innerHTML = options || '<option value="">Aucun créneau disponible</option>';
+        // Sélectionner automatiquement le premier créneau disponible si présent
+        if (available.length > 0) {
+          slotEl.value = available[0].iso;
+        }
+        refreshSlotDisplay();
+      }catch(e){
+        slotEl.innerHTML = '<option value="">Erreur</option>';
+        refreshSlotDisplay();
+      }
     }
     fillSlots();
-    if(window.initFancySelects){ initFancySelects(root); }
     document.getElementById('day').addEventListener('change', fillSlots);
     if(mode==='livraison'){
       document.getElementById('loc').addEventListener('click', ()=>{
@@ -148,22 +230,31 @@
   const phone = document.getElementById('phone').value.trim();
   const mode = document.querySelector('input[name=mode]:checked').value;
   const slotIso = document.getElementById('slot').value;
-  const address = (mode==='livraison') ? (document.getElementById('addr')?.value || '') : '';
+  const address = (mode==='livraison') ? (document.getElementById('addr')?.value || '').trim() : '';
+  const notes = (document.getElementById('notes')?.value || '').trim();
+  const contactConsent = document.getElementById('contactConsent')?.checked === true;
+  const rememberContact = document.getElementById('rememberContact')?.checked === true;
 
-  if(!name || !email){ flash('Nom + email requis', false); return; }
+  if(!name){ flash('Nom et prénom requis', false); return; }
+  if(!email){ flash('Email requis', false); return; }
+  if(!phone){ flash('Téléphone requis', false); return; }
+  if(!contactConsent){ flash("Veuillez accepter d'être contacté pour valider la commande.", false); return; }
+  if(!slotIso || slotIso === 'Aucun créneau (fermé)' || slotIso === 'Aucun créneau disponible'){ flash('Veuillez choisir un créneau disponible', false); return; }
+  if(mode === 'livraison' && !address){ flash('Adresse de livraison requise', false); return; }
   if(!getCart().length){ flash('Panier vide', false); return; }
 
-  const cart = getCart().map(it=>({ id: it.id, qty: it.qty, ripeness: it.ripeness || null }));
+  const cart = getCart().map(it=>({ id: it.id, qty: it.qty, ripeness: it.ripeness || null, variant: it.variant || null }));
 
   try{
     const res = await fetch('/api/checkout.php', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ customer:{name,email,phone}, mode, slot: slotIso, address, cart })
+      body: JSON.stringify({ customer:{name,email,phone}, mode, slot: slotIso, address, notes, contact_consent: contactConsent, remember_contact: rememberContact, cart })
     });
     const data = await res.json();
     if(!data.ok){
       const msg = data.message || data.error || 'checkout_failed';
+      if(data.error === 'slot_unavailable') flash('Ce créneau n\'est plus disponible. Choisissez-en un autre.', false);
       throw new Error(msg);
     }
     window.location = data.url; 
@@ -173,7 +264,7 @@
   }
   });
 
-  // Récapitulatif panier sur la droite (sous-total + FDP 3,99 € si livraison et < 45 €)
+  // Récapitulatif panier : frais de livraison 3,99 € (à modifier ici et dans api/checkout.php si besoin)
   const DELIVERY_FEE = 3.99;
   const FREE_DELIVERY_MIN = 45;
   async function renderCheckoutCart(){
@@ -188,15 +279,28 @@
     const lines = cart.map((it, idx)=>{
       const p = products[idx];
       if(!p) return '';
-      const subtotal = p.price * it.qty;
+      let unitPrice = p.price;
+      if(it.variant && Array.isArray(p.variants) && p.variants.length){
+        const v = p.variants.find(x=>(x.label||'')===it.variant);
+        if(v) unitPrice = v.price ?? (v.price_cents/100);
+      }
+      const subtotal = unitPrice * it.qty;
+      const variantStr = it.variant ? ` – ${it.variant}` : '';
       const ripeness = it.ripeness ? ` – ${it.ripeness}` : '';
       return `<div class="bar" style="justify-content:space-between;margin-bottom:4px">
-        <span>${it.qty} × ${p.name}${ripeness}</span>
+        <span>${it.qty} × ${p.name}${variantStr}${ripeness}</span>
         <span><strong>${money(subtotal)}</strong></span>
       </div>`;
     }).join("");
     const subtotal = cart.reduce((s,it,idx)=>{
-      const p = products[idx]; return s + (p ? p.price*it.qty : 0);
+      const p = products[idx];
+      if(!p) return s;
+      let unitPrice = p.price;
+      if(it.variant && Array.isArray(p.variants) && p.variants.length){
+        const v = p.variants.find(x=>(x.label||'')===it.variant);
+        if(v) unitPrice = v.price ?? (v.price_cents/100);
+      }
+      return s + unitPrice*it.qty;
     },0);
     const mode = document.querySelector('input[name=mode]:checked')?.value || 'cc';
     const addDelivery = mode === 'livraison' && subtotal < FREE_DELIVERY_MIN;

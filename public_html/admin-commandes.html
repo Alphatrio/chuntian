@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Registre des commandes – Admin</title>
+  <link rel="stylesheet" href="assets/ui.css" />
+  <style>
+    .orders-filter { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    .orders-filter .btn { min-width: 120px; }
+    .orders-filter .btn.active { font-weight: 600; }
+    .order-card .order-address { margin: 6px 0; padding: 6px 10px; background: var(--bg-muted, #f5f5f5); border-radius: 6px; font-size: 0.95em; }
+  </style>
+</head>
+<body>
+  <script src="assets/data.js"></script>
+  <script src="assets/app.js"></script>
+  <script>mountHeader("");</script>
+  <main class="container">
+
+  <h1>Registre des commandes</h1>
+  <p class="muted">Filtrez par statut et consultez les commandes avec l’adresse client.</p>
+
+  <div class="orders-filter" id="ordersFilter">
+    <button type="button" class="btn" data-status="">Toutes</button>
+    <button type="button" class="btn primary active" data-status="pending">En attente de réponse</button>
+    <button type="button" class="btn" data-status="accepted">Acceptée</button>
+    <button type="button" class="btn" data-status="declined">Refusée</button>
+  </div>
+
+  <div id="ordersList"></div>
+
+  </main>
+  <script>mountFooter();</script>
+  <script>
+(function(){
+  async function requireAdmin(){
+    const res = await fetch('api/auth-me.php');
+    const data = await res.json();
+    if(!data.ok || !data.user || !data.user.is_admin){
+      window.location.href = 'compte.html?from=admin-commandes';
+      throw new Error('not_admin');
+    }
+    return data.user;
+  }
+
+  const STATUS_LABELS = {
+    pending: 'En attente de réponse',
+    accepted: 'Acceptée',
+    declined: 'Refusée',
+    paid: 'Payée',
+    cancelled: 'Annulée'
+  };
+  function statusLabel(s){ return STATUS_LABELS[s] || s; }
+
+  let currentStatus = 'pending';
+
+  async function fetchOrders(status){
+    const url = status ? 'api/orders.php?status=' + encodeURIComponent(status) : 'api/orders.php';
+    const res = await fetch(url);
+    const data = await res.json();
+    return data.orders || [];
+  }
+
+  async function setOrderStatus(id, status){
+    const res = await fetch('api/orders.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, status })
+    });
+    const data = await res.json();
+    if(!data.ok) throw new Error(data.error || 'Erreur');
+  }
+
+  function renderOrders(orders){
+    const root = document.getElementById('ordersList');
+    if(!orders.length){
+      root.innerHTML = '<p class="muted">Aucune commande pour ce filtre.</p>';
+      return;
+    }
+    root.innerHTML = orders.map(o => {
+      const addr = (o.address || '').trim();
+      const addrHtml = addr
+        ? `<div class="order-address"><strong>Adresse :</strong> ${String(addr).replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`
+        : (o.mode === 'livraison' ? '<div class="order-address muted">Adresse non renseignée</div>' : '<div class="order-address muted">Click & Collect – pas d’adresse</div>');
+      const actions = o.status === 'pending'
+        ? `<div class="bar"><button class="btn" data-acc="${o.id}">Accepter</button> <button class="btn danger" data-dec="${o.id}">Refuser</button></div>`
+        : '';
+      return `
+    <div class="card order-card" style="padding:14px;margin:10px 0" data-id="${o.id}">
+      <div class="bar">
+        <strong>#${o.id}</strong>
+        <span class="pill">${statusLabel(o.status)}</span>
+        <span class="muted">${new Date(o.created_at).toLocaleString('fr-FR')}</span>
+      </div>
+      <div class="bar"><span>${(o.customer_name||'').replace(/</g,'&lt;')} – ${(o.customer_email||'').replace(/</g,'&lt;')}</span></div>
+      ${o.customer_phone ? `<div class="bar muted">Tél. ${String(o.customer_phone).replace(/</g,'&lt;')}</div>` : ''}
+      ${addrHtml}
+      <div class="bar">Mode: <strong>${o.mode}</strong> – Créneau: ${o.slot ? new Date(o.slot).toLocaleString('fr-FR') : 'n/a'}</div>
+      <ul>${(JSON.parse(o.cart||'[]')).map(it => {
+        const r = it.ripeness ? ` (${it.ripeness})` : '';
+        return `<li>${it.qty} × ${it.id}${r} – ${(it.price_cents/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'})}</li>`;
+      }).join('')}</ul>
+      <div class="bar"><strong>Total: ${(o.amount_cents/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'})}</strong></div>
+      ${actions}
+    </div>`;
+    }).join('');
+  }
+
+  async function load(){
+    const orders = await fetchOrders(currentStatus);
+    renderOrders(orders);
+  }
+
+  document.getElementById('ordersFilter').addEventListener('click', async (e)=>{
+    const btn = e.target.closest('button[data-status]');
+    if(!btn) return;
+    currentStatus = btn.dataset.status;
+    document.querySelectorAll('#ordersFilter .btn').forEach(b => {
+      b.classList.remove('active', 'primary');
+      if(b === btn){ b.classList.add('active'); if(currentStatus === 'pending') b.classList.add('primary'); }
+    });
+    await load();
+  });
+
+  document.getElementById('ordersList').addEventListener('click', async (e)=>{
+    const acc = e.target.closest('[data-acc]');
+    const dec = e.target.closest('[data-dec]');
+    if(!acc && !dec) return;
+    const id = acc ? acc.dataset.acc : dec.dataset.dec;
+    const status = acc ? 'accepted' : 'declined';
+    try{
+      await setOrderStatus(id, status);
+      if(typeof flash === 'function') flash('Statut mis à jour ✅');
+      await load();
+    }catch(err){
+      console.error(err);
+      if(typeof flash === 'function') flash('Erreur mise à jour', false);
+    }
+  });
+
+  (async function(){
+    await requireAdmin();
+    await load();
+  })();
+})();
+  </script>
+</body>
+</html>

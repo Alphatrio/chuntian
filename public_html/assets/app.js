@@ -3,11 +3,19 @@ const LS={get(k,f){try{const v=localStorage.getItem(k);return v?JSON.parse(v):f}
 async function loadProducts(){try{const r=await fetch("/api/products.php",{cache:"no-store"});if(r.ok){const j=await r.json();if(j&&j.ok&&Array.isArray(j.products))return j.products}}catch{}try{const raw=localStorage.getItem("products");if(raw){const p=JSON.parse(raw);if(Array.isArray(p))return p}}catch{}try{const r=await fetch("assets/products.json",{cache:"no-store"});const p=await r.json();if(Array.isArray(p))return p}catch{}return[]}
 let PRODUCTS_PROMISE;function getProducts(){return PRODUCTS_PROMISE??=(loadProducts())}
 function saveProducts(list){LS.set("products",list)}
+function hasCategory(p,cat){
+  if(!cat) return true;
+  const cats = Array.isArray(p.categories) && p.categories.length
+    ? p.categories
+    : (p.category ? [p.category] : []);
+  return cats.includes(cat);
+}
 function getCart(){return LS.get("cart",[])}
 function saveCart(cart){LS.set("cart",cart);updateCartBadge()}
 function normRipeness(r){return r||null}
-function addToCart(id,qty=1,ripeness=null){const key=normRipeness(ripeness);const cart=getCart();const f=cart.find(i=>i.id===id&&normRipeness(i.ripeness)===key);if(f){f.qty+=qty}else{cart.push({id,qty,ripeness:key})}saveCart(cart)}
-function setQty(id,qty,ripeness=null){const key=normRipeness(ripeness);let cart=getCart().map(i=>i.id===id&&normRipeness(i.ripeness)===key?{...i,qty}:i).filter(i=>i.qty>0);saveCart(cart)}
+function normVariant(v){return (v!=null&&v!=="")?String(v):null}
+function addToCart(id,qty=1,ripeness=null,variant=null){const rk=normRipeness(ripeness);const vk=normVariant(variant);const cart=getCart();const f=cart.find(i=>i.id===id&&normRipeness(i.ripeness)===rk&&normVariant(i.variant)===vk);if(f){f.qty+=qty}else{cart.push({id,qty,ripeness:rk,variant:vk})}saveCart(cart)}
+function setQty(id,qty,ripeness=null,variant=null){const rk=normRipeness(ripeness);const vk=normVariant(variant);let cart=getCart().map(i=>i.id===id&&normRipeness(i.ripeness)===rk&&normVariant(i.variant)===vk?{...i,qty}:i).filter(i=>i.qty>0);saveCart(cart)}
 function clearCart(){saveCart([])}
 function updateCartBadge(){const el=document.querySelector("#cartCount");if(!el)return;const count=getCart().reduce((s,i)=>s+i.qty,0);el.textContent=String(count)}
 async function findProduct(id){const list=await getProducts();return list.find(p=>p.id===id)}
@@ -58,7 +66,8 @@ async function toggleFavorite(id){
   }
 }
 function productCard(p){
-const onSale=Number.isFinite(p.oldPrice)&&p.oldPrice>p.price;
+const hasVariants=Array.isArray(p.variants)&&p.variants.length>0;
+const onSale=!hasVariants&&Number.isFinite(p.oldPrice)&&p.oldPrice>p.price;
 const badge=onSale?`<span class="badge sale">Promo</span>`:p.featured?`<span class="badge">⭐️</span>`:"";
 const was=onSale?`<span class="was">${money(p.oldPrice)}</span>`:"";
 const ripenessSelect=p.ripeness_enabled?`
@@ -71,6 +80,9 @@ const ripenessSelect=p.ripeness_enabled?`
         </select>
       </label>
     </div>`:"";
+const priceBlock=hasVariants
+  ?`<div class="price"><label class="small">Format <select class="input" data-variant>${p.variants.map(v=>`<option value="${(v.label||'').replace(/"/g,'&quot;')}">${(v.label||'').replace(/</g,'&lt;')} – ${money(v.price??v.price_cents/100)}</option>`).join('')}</select></label></div>`
+  :`<div class="price"><span class="now">${money(p.price)}</span> ${was}</div>`;
 return`
 <article class="card" data-product-id="${p.id}">
   <div class="thumb">
@@ -82,12 +94,13 @@ return`
     <div class="title">${p.name}</div>
     <div class="origin">ORIGINE : ${p.origin||""}</div>
     ${ripenessSelect}
-    <div class="price"><span class="now">${money(p.price)}</span> ${was}</div>
+    ${priceBlock}
     <div class="qty">
-      <select data-unit>
-        <option>${p.unit||"1 pièce"}</option>
-        <option>+ 1</option><option>+ 2</option>
-      </select>
+      <div class="qty-stepper">
+        <button type="button" class="qty-btn" data-qty-minus aria-label="Moins">−</button>
+        <span class="qty-value" data-qty-value>1</span>
+        <button type="button" class="qty-btn" data-qty-plus aria-label="Plus">+</button>
+      </div>
       <button class="btn primary" data-add="${p.id}">Ajouter</button>
     </div>
   </div>
@@ -155,13 +168,26 @@ return`
   document.addEventListener("click", e=>{
     document.querySelectorAll(".fancy-select.is-open").forEach(fs=>{
       if(!fs.contains(e.target)){
-        const btn = fs.querySelector(".select-trigger");
         fs.classList.remove("is-open");
+        const btn = fs.querySelector(".select-trigger");
         if(btn) btn.setAttribute("aria-expanded","false");
       }
     });
   });
 })();
+/* Stepper quantité sur les cartes produit : + / − */
+document.addEventListener("click", e=>{
+  const minus = e.target.closest("[data-qty-minus]");
+  const plus = e.target.closest("[data-qty-plus]");
+  const stepper = (minus || plus)?.closest(".qty-stepper");
+  if(!stepper) return;
+  const valEl = stepper.querySelector("[data-qty-value]");
+  if(!valEl) return;
+  let n = parseInt(valEl.textContent, 10) || 1;
+  if(minus){ n = Math.max(1, n - 1); }
+  if(plus){ n = Math.min(99, n + 1); }
+  valEl.textContent = String(n);
+});
 function dayKey(d){return["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]}
 function makeSlots(date){const key=dayKey(date);const range=STORE.openingHours[key];if(!range)return[];const[start,end]=range;const[sh,sm]=start.split(":").map(Number);const[eh,em]=end.split(":").map(Number);const slots=[];const step=STORE.slotEveryMinutes;const t0=new Date(date.getFullYear(),date.getMonth(),date.getDate(),sh,sm);const t1=new Date(date.getFullYear(),date.getMonth(),date.getDate(),eh,em);for(let t=new Date(t0);t<t1;t=new Date(t.getTime()+step*60000)){slots.push(new Date(t))}return slots}
 function haversine(lat1,lon1,lat2,lon2){const R=6371;const toRad=x=>x*Math.PI/180;const dLat=toRad(lat2-lat1);const dLon=toRad(lon2-lon1);const a=Math.sin(dLat/2)**2+Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;const c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));return R*c}
@@ -206,10 +232,16 @@ async function initAccountLinks(){
     // en cas d'erreur, on laisse les boutons par défaut
   }
 }
+window.initAccountLinks = initAccountLinks;
 
 function mountHeader(active=""){
   document.body.insertAdjacentHTML("afterbegin", `
     <header class="site">
+      <div class="site-topbar">
+        <span>Minimum d’achat de 25&nbsp;€</span>
+        <span class="sep">•</span>
+        <span>Livraison offerte à partir de 45&nbsp;€</span>
+      </div>
       <div class="nav">
         <div class="brand"><a href="index.html"><img src="assets/logo.png" alt="Chun Tian" class="logo"></a></div>
         <nav class="navlinks">
@@ -230,6 +262,18 @@ function mountHeader(active=""){
   `);
   updateCartBadge();
   initAccountLinks();
+}
+
+function mountFooter(){
+  document.body.insertAdjacentHTML("beforeend", `
+    <footer class="site">
+      <a href="mentions-legales.html">Mentions légales</a> ·
+      <a href="cgv.html">C.G.V.</a> ·
+      <a href="conditions-utilisation.html">Conditions d'utilisation</a> ·
+      <a href="politique-confidentialite.html">Politique de confidentialité</a> ·
+      <a href="politique-remboursement.html">Politique de remboursement</a>
+    </footer>
+  `);
 }
 
 

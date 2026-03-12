@@ -28,6 +28,23 @@ if ($method === 'POST') {
   $allowed = ['pending','accepted','declined','paid','cancelled'];
   if (!in_array($status, $allowed, true)) json_out(['ok'=>false,'error'=>'invalid_status'], 400);
   $pdo = db();
+  if ($status === 'accepted') {
+    $stmt = $pdo->prepare("SELECT * FROM orders WHERE id = :id LIMIT 1");
+    $stmt->execute([':id' => $id]);
+    $order = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($order && !empty($order['customer_email'])) {
+      $clientBody = '<p>Bonjour ' . htmlspecialchars($order['customer_name'] ?? '', ENT_QUOTES, 'UTF-8') . ',</p>';
+      $clientBody .= '<p>Votre commande <strong>#' . htmlspecialchars($order['id'], ENT_QUOTES, 'UTF-8') . '</strong> a été <strong>acceptée</strong>.</p>';
+      $clientBody .= '<p>Vous trouverez ci-dessous votre ticket de caisse / facture pour justificatif.</p>';
+      $clientBody .= '<hr style="margin:20px 0;">';
+      $clientBody .= order_receipt_html($order);
+      @send_mail(
+        $order['customer_email'],
+        'Chun Tian – Votre commande #' . $order['id'] . ' a été acceptée',
+        $clientBody
+      );
+    }
+  }
   $stmt = $pdo->prepare("UPDATE orders SET status=:st, updated_at=:u WHERE id=:id");
   $stmt->execute([':st'=>$status, ':u'=>date(DATE_ATOM), ':id'=>$id]);
   json_out(['ok'=>true]);

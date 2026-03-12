@@ -14,9 +14,6 @@
   
   <section class="account-page">
     <h1>Mon compte</h1>
-    <p class="muted intro">
-      Créez un compte ou connectez-vous pour gérer vos commandes. Le compte gérant dispose d’un accès à la page admin.
-    </p>
 
     <div class="account-layout">
       <div class="account-card" id="login">
@@ -59,7 +56,7 @@
   </section>
 
   </main>
-  <footer class="site"><a href="assets/Chuntian%20CGV.odt" target="_blank" rel="noopener">CGV</a></footer>
+  <script>mountFooter();</script>
   
 <script>
 (function(){
@@ -181,9 +178,8 @@
           return;
         }
         flash('Connecté ✅');
-        showAccountInfo(data.user);
-        renderOrderHistory(data.user);
-        renderFavorites(data.user);
+        if(window.initAccountLinks) window.initAccountLinks();
+        window.location.href = 'index.html';
       }catch(e){
         console.error('Login error', e);
         flash('Erreur de connexion: ' + (e?.message || 'réseau'), false);
@@ -210,9 +206,8 @@
           return;
         }
         flash('Compte créé ✅');
-        showAccountInfo(data.user);
-        renderOrderHistory(data.user);
-        renderFavorites(data.user);
+        if(window.initAccountLinks) window.initAccountLinks();
+        window.location.href = 'index.html';
       }catch(e){
         console.error('Register error', e);
         flash('Erreur inscription: ' + (e?.message || 'réseau'), false);

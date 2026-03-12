@@ -18,6 +18,9 @@ $out = [];
 foreach ($all as $iso) {
   $cap = $capMap[$iso] ?? ['capacity'=>5,'used'=>0];
   $available = ($cap['used'] ?? 0) < ($cap['capacity'] ?? 5);
+  if ($available && is_slot_blocked($iso, $pdo)) {
+    $available = false;
+  }
   $out[] = ['iso'=>$iso, 'available'=>$available];
 }
 

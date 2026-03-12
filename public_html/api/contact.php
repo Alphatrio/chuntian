@@ -6,7 +6,7 @@ require __DIR__ . '/bootstrap.php';
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
-// Ensure table exists (simple migration)
+// Historique des messages (facultatif) : conservé pour suivi interne
 $pdo = db();
 $pdo->exec("
   CREATE TABLE IF NOT EXISTS contact_messages (
@@ -28,6 +28,9 @@ if ($method === 'POST') {
     json_out(['ok' => false, 'error' => 'missing_fields'], 422);
   }
 
+  $now = (new DateTimeImmutable())->format(DATE_ATOM);
+
+  // Historique en base (optionnel mais conservé)
   $stmt = $pdo->prepare("
     INSERT INTO contact_messages (name, email, message, created_at)
     VALUES (:name, :email, :message, :created_at)
@@ -37,8 +40,21 @@ if ($method === 'POST') {
     ':name' => $name,
     ':email' => $email,
     ':message' => $message,
-    ':created_at' => (new DateTimeImmutable())->format(DATE_ATOM),
+    ':created_at' => $now,
   ]);
+
+  // Envoi d'un e-mail à l'admin plutôt qu'un simple message dans l'admin
+  $safeName = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
+  $safeEmail = htmlspecialchars($email, ENT_QUOTES, 'UTF-8');
+  $safeMessage = nl2br(htmlspecialchars($message, ENT_QUOTES, 'UTF-8'));
+  $body = "<p>Nouveau message de contact depuis le site Chun Tian.</p>"
+    . "<p><strong>Nom :</strong> {$safeName}<br>"
+    . "<strong>Email :</strong> {$safeEmail}<br>"
+    . "<strong>Reçu le :</strong> " . (new DateTimeImmutable($now))->format('d/m/Y H:i') . "</p>"
+    . "<hr style=\"margin:16px 0;\">"
+    . "<p><strong>Message :</strong><br>{$safeMessage}</p>";
+
+  @send_mail(admin_email(), 'Chun Tian – Nouveau message de contact', $body);
 
   json_out(['ok' => true]);
 }

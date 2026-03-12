@@ -47,8 +47,9 @@ STORE_SLOT_EVERY_MIN=30
 STORE_COORDS_LAT=48.792716
 STORE_COORDS_LON=2.359279
 STORE_DELIVERY_KM=5
+ADMIN_EMAIL=chuntian94800@gmail.com
 ```
-> Anything not set will fall back to these defaults.
+> Anything not set will fall back to these defaults. **E-mails** : les notifications (nouvelle commande → admin ; commande acceptée + ticket → client) utilisent `mail()` PHP. En production, configurez l’envoi SMTP du serveur ou adaptez le code pour un service (SendGrid, etc.).
 
 ## Endpoints
 

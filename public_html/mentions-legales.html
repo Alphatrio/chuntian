@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Merci – Chun Tian</title>
+  <title>Mentions légales – Chun Tian</title>
   <link rel="stylesheet" href="assets/ui.css" />
 </head>
 <body>
@@ -12,17 +12,12 @@
   <script>mountHeader("");</script>
   <main class="container">
   
-  <h1>Merci pour votre commande</h1>
-  <p id="msg"></p>
+  <h1>Mentions légales</h1>
+  <p class="muted">Contenu à venir.</p>
 
   </main>
   <script>mountFooter();</script>
-<script>
-(function(){
-  const id = new URLSearchParams(location.search).get('id');
-  document.getElementById('msg').textContent = id? 'Référence commande : '+id : '';
-})();
-</script>
-
+  
 </body>
 </html>
+

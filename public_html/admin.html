@@ -12,52 +12,42 @@
   <script>mountHeader("");</script>
   <main class="container">
   
-  <h1>Page Gérant</h1>
-  <p class="notice">Démo locale : tout est sauvegardé dans votre navigateur (localStorage).</p>
-
-  <details id="productsPanel" open>
-    <summary><strong>Produits</strong></summary>
-    <div class="bar" style="margin-top:8px">
-      <button id="add" class="btn primary">+ Nouveau produit</button>
-      <input id="q" class="input" placeholder="Recherche…">
-      <select id="sort" class="js-fancy">
-        <option value="updated-desc">Modifié récent</option>
-        <option value="name-asc">Nom A–Z</option>
-        <option value="price-asc">Prix ↑</option>
-        <option value="price-desc">Prix ↓</option>
-      </select>
-      <span class="pill" id="count">0</span>
+  <div style="max-width:720px;margin:0 auto;text-align:center">
+    <h1>Espace Gérant</h1>
+    <div class="bar" style="margin-top:24px;gap:12px;flex-wrap:wrap;justify-content:center">
+      <button type="button" class="btn primary admin-tab-btn" data-tab-btn="products" style="padding:10px 24px;font-size:16px">Produits</button>
+      <button type="button" class="btn admin-tab-btn" data-tab-btn="planning" style="padding:10px 24px;font-size:16px">Planning</button>
+      <button type="button" class="btn admin-tab-btn" data-tab-btn="orders" style="padding:10px 24px;font-size:16px">Commandes</button>
     </div>
-    <div class="bar" style="margin-top:8px">
-      <label>Produit
-        <select id="productSelect" class="input">
-          <option value="">Sélectionner un produit…</option>
-        </select>
-      </label>
-    </div>
-    <table class="table" id="table">
-      <thead><tr><th>Nom</th><th>Prix</th><th>Catégorie</th><th>Origine</th><th>Dispo</th><th></th></tr></thead>
-      <tbody></tbody>
-    </table>
-  </details>
+  </div>
 
-  <details class="admin-product-form" style="margin-top:18px">
-    <summary>Formulaire produit</summary>
-    <div class="admin-form-card">
-      <div class="bar">
+  <div data-tab="products">
+  <section class="admin-products-layout">
+    <div style="max-width:720px;margin:0 auto;text-align:center">
+      <h2 id="productFormTitle" style="margin-top:24px">Formulaire produit</h2>
+      <div class="bar" style="justify-content:center;margin-top:8px">
+        <button type="button" id="toggleProductForm" class="btn">+ Afficher le formulaire</button>
+      </div>
+    </div>
+    <div id="productFormCard" class="admin-form-card" style="margin-top:12px;max-width:720px;margin-left:auto;margin-right:auto;display:none">
+      <div class="bar" style="justify-content:center">
         <div class="field">
           <label class="small" for="f-name">Nom</label>
           <input id="f-name" class="input" placeholder="Abricot, Banane…">
         </div>
         <div class="field">
-          <label class="small" for="f-category">Catégorie</label>
-          <select id="f-category" class="input js-fancy">
-            <option>Fruits</option><option>Légumes</option><option>Herbes</option>
-          </select>
-        </div>
-        <div class="field">
           <label class="small" for="f-price">Prix</label>
           <input id="f-price" class="input" type="number" step="0.01" placeholder="1,50">
+        </div>
+      </div>
+      <div class="bar">
+        <div class="field">
+          <label class="small">Catégories</label>
+          <div id="f-categories-group" class="bar" style="gap:12px;flex-wrap:wrap;margin-top:4px;justify-content:center">
+            <label style="display:inline-flex;align-items:center;gap:6px"><input type="checkbox" value="Fruits"> Fruits</label>
+            <label style="display:inline-flex;align-items:center;gap:6px"><input type="checkbox" value="Légumes"> Légumes</label>
+            <label style="display:inline-flex;align-items:center;gap:6px"><input type="checkbox" value="Herbes"> Herbes</label>
+          </div>
         </div>
       </div>
       <div class="bar">
@@ -74,46 +64,117 @@
           <input id="f-image" class="input" placeholder="assets/img/abricot.jpg">
         </div>
         <label class="field admin-availability">
-          <span class="small">Disponible aujourd’hui</span>
-          <div class="admin-availability-toggle">
-            <input id="f-available" type="checkbox" checked>
-          </div>
+          <button type="button" id="availableToggle" class="btn available-toggle">Disponible aujourd’hui</button>
+          <input id="f-available" type="checkbox" checked style="display:none">
         </label>
       </div>
-      <div class="bar admin-ripeness-row">
-        <div class="field">
+      <div class="bar admin-ripeness-row" style="justify-content:center">
+        <div class="field" style="max-width:220px;margin:0 auto">
           <label class="small" for="f-ripeness-enabled">Option de mûreté</label>
-          <select id="f-ripeness-enabled" class="input">
+          <select id="f-ripeness-enabled" class="input" style="max-width:220px">
             <option value="0">Non</option>
             <option value="1">Oui, laisser le client choisir</option>
           </select>
         </div>
-        <div class="field" id="ripeness-choice-wrap" style="display:none">
+        <div class="field" id="ripeness-choice-wrap" style="display:none;max-width:220px;margin:0 auto">
           <label class="small" for="f-ripeness">Mûreté par défaut</label>
-          <select id="f-ripeness" class="input">
+          <select id="f-ripeness" class="input" style="max-width:220px">
             <option value="Mûre">Mûre</option>
             <option value="Presque mûre">Presque mûre</option>
             <option value="Pas Mûre">Pas Mûre</option>
           </select>
         </div>
       </div>
-      <div class="bar admin-form-actions">
-        <button id="save" class="btn primary">💾 Enregistrer</button>
+      <div class="bar" style="flex-wrap:wrap;align-items:flex-start;justify-content:center">
+        <div class="field" style="flex:0 1 480px;min-width:260px;margin:0 auto">
+          <label class="small">Déclinaisons (formats / prix distincts)</label>
+          <div id="f-variants-list"></div>
+          <button type="button" id="f-variants-add" class="btn" style="margin-top:8px">+ Ajouter une déclinaison</button>
+        </div>
+      </div>
+      <div class="bar admin-form-actions" style="margin-top:12px">
+        <button id="save" class="btn primary">Enregistrer</button>
         <button id="reset" class="btn">Réinitialiser</button>
         <span id="formMsg" class="pill"></span>
       </div>
     </div>
-  </details>
+    <div style="max-width:720px;margin:0 auto;text-align:center">
+      <div class="bar" style="margin-top:24px;flex-wrap:wrap;gap:8px;justify-content:center">
+        <input id="q" class="input" placeholder="Recherche…" style="max-width:260px">
+      </div>
+      <div class="bar" style="margin-top:8px;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center">
+        <button type="button" class="btn" data-cat="">Toutes</button>
+        <button type="button" class="btn" data-cat="Fruits">Fruits</button>
+        <button type="button" class="btn" data-cat="Légumes">Légumes</button>
+        <button type="button" class="btn" data-cat="Herbes">Herbes</button>
+        <input type="hidden" id="filterCategory" value="">
+      </div>
+      <div class="bar" style="margin-top:8px;flex-wrap:wrap;gap:8px;justify-content:center">
+        <button type="button" class="btn" data-av="">Tous</button>
+        <button type="button" class="btn" data-av="available">Disponibles</button>
+        <button type="button" class="btn" data-av="unavailable">Indisponibles</button>
+        <input type="hidden" id="filterAvailable" value="">
+      </div>
+    </div>
+    <table class="table" id="table">
+      <thead><tr><th>Nom</th><th>Prix</th><th>Catégories</th><th>Origine</th><th>Dispo</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+  </div>
 
-  <h2 style="margin-top:32px">Commandes</h2>
-  <div id="orders"></div>
+  <div data-tab="planning">
+  <h2 style="margin-top:32px;text-align:center">Planning – Créneaux bloqués</h2>
+  <div style="display:flex;justify-content:center;margin-top:12px">
+    <button type="button" id="toggleBlockForm" class="btn">+ Ajouter un blocage</button>
+  </div>
+  <div id="slotBlockForm" class="admin-form-card" style="margin-top:12px;display:none">
+    <div class="bar" style="flex-wrap:wrap;gap:12px">
+      <div class="field">
+        <label class="small" for="block-date-from">Du (date)</label>
+        <input id="block-date-from" class="input" type="date" required>
+      </div>
+      <div class="field">
+        <label class="small" for="block-date-to">Au (date)</label>
+        <input id="block-date-to" class="input" type="date" required>
+      </div>
+      <div class="field">
+        <label class="small" for="block-time-from">Heure début</label>
+        <input id="block-time-from" class="input" type="time" value="09:00">
+      </div>
+      <div class="field">
+        <label class="small" for="block-time-to">Heure fin</label>
+        <input id="block-time-to" class="input" type="time" value="12:00">
+      </div>
+      <div class="field">
+        <label class="small" for="block-label">Libellé (optionnel)</label>
+        <input id="block-label" class="input" placeholder="Ex. Matinées semaine 12">
+      </div>
+    </div>
+    <div class="bar admin-form-actions" style="margin-top:12px;justify-content:center;gap:8px">
+      <button id="block-add" class="btn primary">Bloquer ces créneaux</button>
+      <span id="blockMsg" class="pill"></span>
+    </div>
+  </div>
+  <div id="slotBlocksList" class="slot-grid" style="margin-top:20px"></div>
+  </div>
 
-  <h2 style="margin-top:32px">Messages de contact</h2>
-  <div id="messages"></div>
+  <div data-tab="orders">
+    <div style="max-width:720px;margin:0 auto;text-align:center">
+      <h2 style="margin-top:32px">Registre des commandes</h2>
+      <div class="orders-filter" id="ordersFilter" style="justify-content:center">
+        <button type="button" class="btn" data-status="">Toutes</button>
+        <button type="button" class="btn primary active" data-status="pending">En attente de réponse</button>
+        <button type="button" class="btn" data-status="accepted">Acceptée</button>
+        <button type="button" class="btn" data-status="declined">Refusée</button>
+      </div>
+    </div>
+
+    <div id="ordersList" style="max-width:720px;margin:16px auto 0"></div>
+  </div>
 
   </main>
-  <footer class="site"><a href="assets/Chuntian%20CGV.odt" target="_blank" rel="noopener">CGV</a></footer>
-  
+  <script>mountFooter();</script>
 <script>
 
 async function requireAdminFrontend(){
@@ -142,6 +203,76 @@ async function setOrderStatusServer(id, status){
   if(!data.ok) throw new Error(data.error||'update_failed');
 }
 
+// Registre des commandes (onglet "Commandes")
+const STATUS_LABELS = {
+  pending: 'En attente de réponse',
+  accepted: 'Acceptée',
+  declined: 'Refusée',
+  paid: 'Payée',
+  cancelled: 'Annulée'
+};
+function statusLabel(s){ return STATUS_LABELS[s] || s; }
+
+let currentOrdersStatus = 'pending';
+
+async function fetchAllOrders(status){
+  const url = status ? '/api/orders.php?status=' + encodeURIComponent(status) : '/api/orders.php';
+  const res = await fetch(url);
+  const data = await res.json();
+  return data.orders || [];
+}
+
+async function setOrderStatusRegistry(id, status){
+  const res = await fetch('/api/orders.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, status })
+  });
+  const data = await res.json();
+  if(!data.ok) throw new Error(data.error || 'Erreur');
+}
+
+function renderOrdersRegistry(orders){
+  const root = document.getElementById('ordersList');
+  if(!root) return;
+  if(!orders.length){
+    root.innerHTML = '<p class="muted" style="text-align:center;margin-top:8px">Aucune commande pour ce filtre.</p>';
+    return;
+  }
+  root.innerHTML = orders.map(o => {
+    const addr = (o.address || '').trim();
+    const addrHtml = addr
+      ? `<div class="order-address"><strong>Adresse :</strong> ${String(addr).replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`
+      : (o.mode === 'livraison' ? '<div class="order-address muted">Adresse non renseignée</div>' : '<div class="order-address muted">Click & Collect – pas d’adresse</div>');
+    const actions = o.status === 'pending'
+      ? `<div class="bar"><button class="btn" data-acc="${o.id}">Accepter</button> <button class="btn danger" data-dec="${o.id}">Refuser</button></div>`
+      : '';
+    return `
+    <div class="card order-card" style="padding:14px;margin:10px 0" data-id="${o.id}">
+      <div class="bar">
+        <strong>#${o.id}</strong>
+        <span class="pill">${statusLabel(o.status)}</span>
+        <span class="muted">${new Date(o.created_at).toLocaleString('fr-FR')}</span>
+      </div>
+      <div class="bar"><span>${(o.customer_name||'').replace(/</g,'&lt;')} – ${(o.customer_email||'').replace(/</g,'&lt;')}</span></div>
+      ${o.customer_phone ? `<div class="bar muted">Tél. ${String(o.customer_phone).replace(/</g,'&lt;')}</div>` : ''}
+      ${addrHtml}
+      <div class="bar">Mode: <strong>${o.mode}</strong> – Créneau: ${o.slot ? new Date(o.slot).toLocaleString('fr-FR') : 'n/a'}</div>
+      <ul>${(JSON.parse(o.cart||'[]')).map(it => {
+        const r = it.ripeness ? ` (${it.ripeness})` : '';
+        return `<li>${it.qty} × ${it.id}${r} – ${(it.price_cents/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'})}</li>`;
+      }).join('')}</ul>
+      <div class="bar"><strong>Total: ${(o.amount_cents/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'})}</strong></div>
+      ${actions}
+    </div>`;
+  }).join('');
+}
+
+async function loadOrdersRegistry(){
+  const orders = await fetchAllOrders(currentOrdersStatus);
+  renderOrdersRegistry(orders);
+}
+
 async function saveProductServer(p){
   const res = await fetch('/api/admin-products.php', {
     method:'POST',
@@ -162,11 +293,71 @@ async function deleteProductServer(id){
   if(!res.ok || !data.ok) throw new Error(data.error||'product_delete_failed');
 }
 
+function initAdminTabs(defaultTab = 'products'){
+  const buttons = Array.from(document.querySelectorAll('.admin-tab-btn'));
+  const sections = Array.from(document.querySelectorAll('[data-tab]'));
+  function activate(tab){
+    sections.forEach(sec => {
+      sec.style.display = (sec.getAttribute('data-tab') === tab) ? '' : 'none';
+    });
+    buttons.forEach(btn => {
+      const isActive = btn.getAttribute('data-tab-btn') === tab;
+      btn.classList.toggle('primary', isActive);
+    });
+  }
+  buttons.forEach(btn => {
+    btn.addEventListener('click', ()=>{
+      const tab = btn.getAttribute('data-tab-btn') || defaultTab;
+      activate(tab);
+    });
+  });
+  activate(defaultTab);
+}
+
 (async function(){
   try{
     await requireAdminFrontend();
   }catch(e){
     return;
+  }
+  initAdminTabs('products');
+  // initialiser le registre des commandes si l'onglet est accessible
+  if (document.getElementById('ordersList')) {
+    loadOrdersRegistry().catch(console.error);
+    const filterEl = document.getElementById('ordersFilter');
+    if(filterEl){
+      filterEl.addEventListener('click', async (e)=>{
+        const btn = e.target.closest('button[data-status]');
+        if(!btn) return;
+        currentOrdersStatus = btn.dataset.status;
+        filterEl.querySelectorAll('.btn').forEach(b => {
+          b.classList.remove('active','primary');
+          if(b === btn){
+            b.classList.add('active');
+            if(currentOrdersStatus === 'pending') b.classList.add('primary');
+          }
+        });
+        await loadOrdersRegistry();
+      });
+    }
+    const listEl = document.getElementById('ordersList');
+    if(listEl){
+      listEl.addEventListener('click', async (e)=>{
+        const acc = e.target.closest('[data-acc]');
+        const dec = e.target.closest('[data-dec]');
+        if(!acc && !dec) return;
+        const id = acc ? acc.dataset.acc : dec.dataset.dec;
+        const status = acc ? 'accepted' : 'declined';
+        try{
+          await setOrderStatusRegistry(id, status);
+          if(typeof flash === 'function') flash('Statut mis à jour ✅');
+          await loadOrdersRegistry();
+        }catch(err){
+          console.error(err);
+          if(typeof flash === 'function') flash('Erreur mise à jour', false);
+        }
+      });
+    }
   }
   // ---- produits table
   let currentId = null;
@@ -176,18 +367,35 @@ async function deleteProductServer(id){
     let list = await getProducts();
     const q = $('#q').value.trim().toLowerCase();
     if(q){ list = list.filter(p => JSON.stringify(p).toLowerCase().includes(q)); }
-    switch($('#sort').value){
-      case 'name-asc': list.sort((a,b)=>a.name.localeCompare(b.name,'fr')); break;
-      case 'price-asc': list.sort((a,b)=>a.price-b.price); break;
-      case 'price-desc': list.sort((a,b)=>b.price-a.price); break;
-      default: list.sort((a,b)=>new Date(b.updated||b.created||0)-new Date(a.updated||a.created||0));
+    const catFilter = ($('#filterCategory')?.value || '').trim();
+    if(catFilter){
+      list = list.filter(p => {
+        const cats = Array.isArray(p.categories) && p.categories.length
+          ? p.categories
+          : (p.category ? [p.category] : []);
+        return cats.includes(catFilter);
+      });
     }
-    $('#count').textContent = list.length;
-    $('#table tbody').innerHTML = list.map(p => `
+    const avFilter = ($('#filterAvailable')?.value || '').trim();
+    if(avFilter){
+      list = list.filter(p => {
+        const available = p.available !== false;
+        if(avFilter === 'available') return available;
+        if(avFilter === 'unavailable') return !available;
+        return true;
+      });
+    }
+    // Tri par défaut : noms A–Z
+    list.sort((a,b)=>a.name.localeCompare(b.name,'fr'));
+    $('#table tbody').innerHTML = list.map(p => {
+      const cats = Array.isArray(p.categories) && p.categories.length
+        ? p.categories.join(', ')
+        : (p.category || '');
+      return `
       <tr>
         <td><strong>${p.name}</strong><div class="muted">${p.unit||''}</div></td>
         <td>${money(p.price)}</td>
-        <td>${p.category||''}</td>
+        <td>${cats}</td>
         <td>${p.origin||''}</td>
         <td>
           <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;">
@@ -196,19 +404,12 @@ async function deleteProductServer(id){
           </label>
         </td>
         <td><button data-edit="${p.id}" class="btn">Éditer</button> <button data-del="${p.id}" class="btn danger">Supprimer</button></td>
-      </tr>
-    `).join('');
-
-    const sel = document.getElementById('productSelect');
-    if(sel){
-      sel.innerHTML = '<option value=\"\">Sélectionner un produit…</option>' +
-        list.map(p => `<option value="${p.id}">${p.name} – ${money(p.price)}</option>`).join('');
-    }
+      </tr>`;
+    }).join('');
   }
   function resetForm(){
     currentId=null;
     $('#f-name').value='';
-    $('#f-category').value='Fruits';
     $('#f-price').value='';
     $('#f-origin').value='';
     $('#f-unit').value='';
@@ -217,43 +418,101 @@ async function deleteProductServer(id){
     $('#f-ripeness-enabled').value='0';
     $('#f-ripeness').value='Mûre';
     $('#ripeness-choice-wrap').style.display='none';
+    const catsGroup = document.querySelectorAll('#f-categories-group input[type=checkbox]');
+    catsGroup.forEach(cb=>{ cb.checked = false; });
+    document.getElementById('f-variants-list').innerHTML = '';
   }
+  function addVariantRow(label = '', price = ''){
+    const list = document.getElementById('f-variants-list');
+    const row = document.createElement('div');
+    row.className = 'variant-row';
+    row.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:8px';
+    row.innerHTML = `
+      <input type="text" class="input variant-label" placeholder="Ex. Entière, Quart" value="${(label+'').replace(/"/g,'&quot;')}" style="max-width:360px">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+        <input type="number" class="input variant-price" step="0.01" placeholder="Prix" value="${(price+'').replace(/"/g,'&quot;')}" style="width:120px;text-align:center">
+        <button type="button" class="btn danger" data-remove-variant style="padding:4px 10px;font-size:12px;display:flex;align-items:center;gap:6px">
+          <span>×</span>
+          <span style="font-size:11px;font-weight:500">Supprimer la déclinaison</span>
+        </button>
+      </div>`;
+    list.appendChild(row);
+    row.querySelector('[data-remove-variant]').addEventListener('click', ()=> row.remove());
+  }
+  document.getElementById('f-variants-add').addEventListener('click', ()=> addVariantRow());
   function toggleRipenessChoice(){
     $('#ripeness-choice-wrap').style.display = $('#f-ripeness-enabled').value==='1' ? '' : 'none';
   }
   function readForm(){
     const name = $('#f-name').value.trim(); if(!name) throw new Error('Nom requis');
     const id = currentId || slug(name);
-    const price = parseFloat($('#f-price').value); if(Number.isNaN(price)) throw new Error('Prix invalide');
+    let price = parseFloat($('#f-price').value);
+    const variantRows = document.querySelectorAll('#f-variants-list .variant-row');
+    const variants = [];
+    variantRows.forEach(row=>{
+      const label = (row.querySelector('.variant-label')?.value || '').trim();
+      const pVal = parseFloat(row.querySelector('.variant-price')?.value || '0');
+      if(label !== '') variants.push({ label, price: pVal });
+    });
+    if(variants.length === 0 && Number.isNaN(price)) throw new Error('Prix invalide');
+    if(variants.length > 0 && Number.isNaN(price)) price = variants[0].price;
     const ripenessEnabled = $('#f-ripeness-enabled').value === '1';
+    const catsGroup = document.querySelectorAll('#f-categories-group input[type=checkbox]');
+    const categories = Array.from(catsGroup).filter(cb=>cb.checked).map(cb=>cb.value);
+    if(!categories.length) throw new Error('Choisir au moins une catégorie');
     const p = {
       id, name, price,
-      category: $('#f-category').value,
+      category: categories[0],
+      categories,
       origin: $('#f-origin').value.trim(),
       unit: $('#f-unit').value.trim(),
       image: $('#f-image').value.trim(),
       available: $('#f-available').checked,
       ripeness_enabled: ripenessEnabled,
-      ripeness: ripenessEnabled ? $('#f-ripeness').value : null
+      ripeness: ripenessEnabled ? $('#f-ripeness').value : null,
+      variants: variants.length ? variants : undefined
     };
     return p;
   }
   $('#f-ripeness-enabled').addEventListener('change', toggleRipenessChoice);
-  document.getElementById('add').addEventListener('click', ()=>{
-    resetForm();
-    const panel = document.querySelector('details');
-    if(panel){
-      panel.open = true;
-      panel.scrollIntoView({behavior:'smooth', block:'start'});
-    }
-  });
+
+  function scrollProductFormToTop(){
+    const title = document.getElementById('productFormTitle');
+    if(!title) return;
+    const rect = title.getBoundingClientRect();
+    // Placer le titre proche du haut de la fenêtre
+    const offset = window.pageYOffset + rect.top - 80;
+    window.scrollTo({ top: Math.max(offset, 0), behavior:'smooth' });
+  }
+  const productToggleBtn = document.getElementById('toggleProductForm');
+  const productFormCard = document.getElementById('productFormCard');
+  if(productToggleBtn && productFormCard){
+    productToggleBtn.addEventListener('click', ()=>{
+      const isHidden = window.getComputedStyle(productFormCard).display === 'none';
+      productFormCard.style.display = isHidden ? 'block' : 'none';
+      productToggleBtn.textContent = isHidden ? '− Masquer le formulaire' : '+ Afficher le formulaire';
+      if(isHidden){
+        // Réinitialiser le formulaire et forcer "Non" par défaut pour l'option de mûreté
+        resetForm();
+        const nameInput = document.getElementById('f-name');
+        if(nameInput) nameInput.focus();
+        scrollProductFormToTop();
+      }
+    });
+  }
   document.getElementById('reset').addEventListener('click', resetForm);
   document.getElementById('save').addEventListener('click', async ()=>{
     try{
       const p = readForm();
       await saveProductServer(p);
-      // reset cache pour recharger depuis le serveur
+      // Mettre à jour immédiatement le cache et le localStorage avec le produit sauvegardé
       window.PRODUCTS_PROMISE = null;
+      let list = await getProducts();
+      const idx = list.findIndex(x => x.id === p.id);
+      if (idx >= 0) list = list.slice(0, idx).concat([{ ...list[idx], ...p }], list.slice(idx + 1));
+      else list = [...list, p];
+      window.PRODUCTS_PROMISE = Promise.resolve(list);
+      if (typeof saveProducts === 'function') saveProducts(list);
       await renderTable();
       flash('Sauvegardé ✅');
     }catch(e){
@@ -284,17 +543,28 @@ async function deleteProductServer(id){
     }
     // edit
     const p = list[i]; currentId = p.id;
-    $('#f-name').value = p.name||''; $('#f-category').value = p.category||'Fruits';
-    $('#f-price').value = p.price??''; $('#f-origin').value = p.origin||''; $('#f-unit').value = p.unit||'';
+    $('#f-name').value = p.name||''; $('#f-price').value = p.price??''; $('#f-origin').value = p.origin||''; $('#f-unit').value = p.unit||'';
     $('#f-image').value = p.image||'';
     $('#f-available').checked = p.available !== false;
     $('#f-ripeness-enabled').value = p.ripeness_enabled ? '1' : '0';
     $('#f-ripeness').value = p.ripeness || 'Mûre';
+    const catsGroup = document.querySelectorAll('#f-categories-group input[type=checkbox]');
+    const cats = Array.isArray(p.categories) && p.categories.length ? p.categories : (p.category ? [p.category] : []);
+    catsGroup.forEach(cb=>{ cb.checked = cats.includes(cb.value); });
+    document.getElementById('f-variants-list').innerHTML = '';
+    const variants = p.variants;
+    if(Array.isArray(variants) && variants.length){
+      variants.forEach(v=> addVariantRow(v.label || '', v.price ?? v.price_cents != null ? v.price_cents/100 : ''));
+    }
     toggleRipenessChoice();
-    const panel = document.querySelector('details');
-    if(panel){
-      panel.open = true;
-      panel.scrollIntoView({behavior:'smooth', block:'start'});
+    const formCard = document.getElementById('productFormCard');
+    const productToggleBtn = document.getElementById('toggleProductForm');
+    if(formCard){
+      formCard.style.display = 'block';
+      scrollProductFormToTop();
+    }
+    if(productToggleBtn){
+      productToggleBtn.textContent = '− Masquer le formulaire';
     }
   });
   document.getElementById('table').addEventListener('change', async (e)=>{
@@ -304,57 +574,109 @@ async function deleteProductServer(id){
     const list = await getProducts();
     const p = list.find(x=>x.id===id);
     if(!p) return;
-    const updated = { ...p, available: cb.checked };
+    const available = cb.checked;
+
+    // Mettre à jour immédiatement le libellé dans la ligne (OK / Indispo)
+    const labelSpan = cb.parentElement?.querySelector('span');
+    if(labelSpan){
+      labelSpan.textContent = available ? 'OK' : 'Indispo';
+    }
+
     try{
-      await saveProductServer(updated);
+      // Invalider le cache et sauvegarder côté serveur
       window.PRODUCTS_PROMISE = null;
-      await renderTable();
-      flash(cb.checked ? 'Produit marqué disponible' : 'Produit marqué indisponible');
+      await saveProductServer({ ...p, available });
+      // Recharger entièrement la page pour être sûr que la liste + filtres reflètent l'état réel
+      if(typeof flash === 'function'){
+        flash(available ? 'Produit marqué disponible' : 'Produit marqué indisponible');
+      }
+      window.location.reload();
     }catch(err){
       console.error(err);
-      flash('Erreur mise à jour dispo', false);
+      // Revenir à l'état précédent en cas d'erreur
+      const revertedAvailable = !available;
+      cb.checked = revertedAvailable;
+      if(labelSpan){
+        labelSpan.textContent = revertedAvailable ? 'OK' : 'Indispo';
+      }
+      window.PRODUCTS_PROMISE = null;
+      if(typeof flash === 'function'){
+        flash('Erreur mise à jour dispo', false);
+      }
     }
   });
-  const productSelect = document.getElementById('productSelect');
-  if(productSelect){
-    productSelect.addEventListener('change', async (e)=>{
-      const id = e.target.value;
-      if(!id) return;
-      const list = await getProducts();
-      const p = list.find(x=>x.id===id);
-      if(!p) return;
-      currentId = p.id;
-      $('#f-name').value = p.name||''; $('#f-category').value = p.category||'Fruits';
-      $('#f-price').value = p.price??''; $('#f-origin').value = p.origin||''; $('#f-unit').value = p.unit||'';
-      $('#f-image').value = p.image||'';
-      $('#f-available').checked = p.available !== false;
-      $('#f-ripeness-enabled').value = p.ripeness_enabled ? '1' : '0';
-      $('#f-ripeness').value = p.ripeness || 'Mûre';
-      toggleRipenessChoice();
-      const panel = document.querySelector('details');
-      if(panel){
-        panel.open = true;
-        panel.scrollIntoView({behavior:'smooth', block:'start'});
-      }
-    });
-  }
-  $('#q').addEventListener('input', renderTable); $('#sort').addEventListener('change', renderTable);
+  $('#q').addEventListener('input', renderTable);
+  const filterCatEl = document.getElementById('filterCategory');
+  if(filterCatEl) filterCatEl.addEventListener('change', renderTable);
   renderTable();
 
+  // Toggle « Disponible aujourd’hui » en joli bouton dans le formulaire
+  const availableToggleBtn = document.getElementById('availableToggle');
+  const availableCheckbox = document.getElementById('f-available');
+  function syncAvailableToggle(){
+    if(!availableToggleBtn || !availableCheckbox) return;
+    const on = availableCheckbox.checked;
+    availableToggleBtn.classList.toggle('primary', on);
+    availableToggleBtn.classList.toggle('available-off', !on);
+    availableToggleBtn.textContent = on ? 'Disponible aujourd’hui' : 'Indisponible';
+  }
+  if(availableToggleBtn && availableCheckbox){
+    syncAvailableToggle();
+    availableToggleBtn.addEventListener('click', ()=>{
+      availableCheckbox.checked = !availableCheckbox.checked;
+      syncAvailableToggle();
+    });
+  }
+
+  // Boutons de filtre de catégorie (toggles centrés)
+  document.querySelectorAll('button[data-cat]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const value = btn.dataset.cat || '';
+      const current = filterCatEl ? filterCatEl.value : '';
+      const newVal = (current === value) ? '' : value;
+      if(filterCatEl) filterCatEl.value = newVal;
+      document.querySelectorAll('button[data-cat]').forEach(b=>{
+        b.classList.toggle('primary', b.dataset.cat === newVal);
+      });
+      renderTable();
+    });
+  });
+
+  // Boutons de filtre disponibilité (dispo / indispo)
+  const filterAvEl = document.getElementById('filterAvailable');
+  document.querySelectorAll('button[data-av]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const value = btn.dataset.av || '';
+      const current = filterAvEl ? filterAvEl.value : '';
+      const newVal = (current === value) ? '' : value;
+      if(filterAvEl) filterAvEl.value = newVal;
+      document.querySelectorAll('button[data-av]').forEach(b=>{
+        b.classList.toggle('primary', b.dataset.av === newVal);
+      });
+      renderTable();
+    });
+  });
+
   // ---- commandes
+  // Ancienne vue commandes (liste simple) conservée pour compatibilité éventuelle,
+  // mais uniquement activée si un conteneur #orders est présent dans le DOM.
   async function renderOrders(){
-  const orders = await fetchOrders(); // <- vient de l'API
-  const root = document.getElementById('orders');
-  if(!orders.length){ root.innerHTML = '<p>Aucune commande.</p>'; return; }
-  root.innerHTML = orders.map(o => `
+    const root = document.getElementById('orders');
+    if(!root) return;
+    const orders = await fetchOrders(); // <- vient de l'API
+    if(!orders.length){ root.innerHTML = '<p>Aucune commande.</p>'; return; }
+    root.innerHTML = orders.map(o => {
+      const addr = (o.address || '').trim();
+      const addrLine = addr ? ` – <span class="muted">Adresse : ${String(o.address).replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>` : (o.mode === 'livraison' ? ' – <span class="muted">Adresse non renseignée</span>' : '');
+      return `
     <div class="card" style="padding:12px;margin:8px 0">
       <div class="bar">
         <strong>#${o.id}</strong>
         <span class="pill">${o.status}</span>
         <span class="muted">${new Date(o.created_at).toLocaleString('fr-FR')}</span>
       </div>
-      <div class="bar"><span>${o.customer_name||''} – ${o.customer_email||''}</span></div>
-      <div class="bar">Mode: <strong>${o.mode}</strong> – Créneau: ${o.slot? new Date(o.slot).toLocaleString('fr-FR'):'n/a'}</div>
+      <div class="bar"><span>${(o.customer_name||'').replace(/</g,'&lt;')} – ${(o.customer_email||'').replace(/</g,'&lt;')}</span></div>
+      <div class="bar">Mode: <strong>${o.mode}</strong> – Créneau: ${o.slot? new Date(o.slot).toLocaleString('fr-FR'):'n/a'}${addrLine}</div>
       <ul>${(JSON.parse(o.cart)||[]).map(it=> {
         const ripeness = it.ripeness ? ` (${it.ripeness})` : '';
         return `<li>${it.qty} × ${it.id}${ripeness} – ${(it.price_cents/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'})}</li>`;
@@ -365,84 +687,202 @@ async function deleteProductServer(id){
         <button class="btn danger" data-dec="${o.id}">Refuser</button>
       </div>
     </div>
-  `).join('');
-}
-
-document.getElementById('orders').addEventListener('click', async (e)=>{
-  const acc = e.target.closest('[data-acc]'); const dec = e.target.closest('[data-dec]');
-  if(!acc && !dec) return;
-  const id = acc? acc.dataset.acc : dec.dataset.dec;
-  const status = acc? 'accepted' : 'declined';
-  try{
-    await setOrderStatusServer(id, status);
-    flash('Statut mis à jour ✅');
-    renderOrders();
-  }catch(err){
-    console.error(err);
-    flash('Erreur mise à jour', false);
+  `; }).join('');
   }
-});
 
-// appel initial
-renderOrders();
+  const legacyOrdersEl = document.getElementById('orders');
+  if (legacyOrdersEl) {
+    legacyOrdersEl.addEventListener('click', async (e)=>{
+      const acc = e.target.closest('[data-acc]'); const dec = e.target.closest('[data-dec]');
+      if(!acc && !dec) return;
+      const id = acc? acc.dataset.acc : dec.dataset.dec;
+      const status = acc? 'accepted' : 'declined';
+      try{
+        await setOrderStatusServer(id, status);
+        flash('Statut mis à jour ✅');
+        renderOrders();
+      }catch(err){
+        console.error(err);
+        flash('Erreur mise à jour', false);
+      }
+    });
+    // appel initial pour cette ancienne vue si elle est là
+    renderOrders();
+  }
 
-// ---- messages de contact
-async function fetchMessages(){
-  const res = await fetch('/api/contact.php');
+// ---- Planning : créneaux bloqués
+async function fetchSlotBlocks(){
+  const res = await fetch('/api/slot-blocks.php');
   const data = await res.json();
-  return data.messages || [];
+  return data.ok ? (data.blocks || []) : [];
 }
 
-async function renderMessages(){
-  const root = document.getElementById('messages');
+async function renderSlotBlocks(){
+  const root = document.getElementById('slotBlocksList');
   try{
-    const messages = await fetchMessages();
-    if(!messages.length){
-      root.innerHTML = '<p>Aucun message.</p>';
+    const blocks = await fetchSlotBlocks();
+    if(!blocks.length){
+      root.innerHTML = '<p class="muted">Aucun créneau bloqué.</p>';
       return;
     }
-    root.innerHTML = messages.map(m => `
-      <div class="card" style="position:relative;padding:12px;margin:8px 0">
-        <button class="btn danger" data-delmsg="${m.id}" style="position:absolute;top:8px;right:8px">Supprimer</button>
-        <div class="bar">
-          <strong>${m.name}</strong>
-          <span class="muted">${m.email}</span>
-          <span class="muted">${new Date(m.created_at).toLocaleString('fr-FR')}</span>
-        </div>
-        <p>${(m.message||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p>
-      </div>
-    `).join('');
+    try {
+      // Vue par jour : dérouler chaque blocage en jours individuels
+      const perDay = {};
+      blocks.forEach(b => {
+        const label = (b.label || '').trim();
+        const start = new Date(b.date_from + 'T00:00:00');
+        const end = new Date(b.date_to + 'T00:00:00');
+        if (isNaN(start.getTime()) || isNaN(end.getTime())) return;
+        for (let d = new Date(start.getTime()); d.getTime() <= end.getTime(); d.setDate(d.getDate() + 1)) {
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2,'0');
+          const day = String(d.getDate()).padStart(2,'0');
+          const key = `${y}-${m}-${day}`;
+          if (!perDay[key]) perDay[key] = [];
+          perDay[key].push({
+            id: b.id,
+            time_from: b.time_from,
+            time_to: b.time_to,
+            label
+          });
+        }
+      });
+      const days = Object.keys(perDay).sort();
+      if (days.length) {
+        root.innerHTML = days.map(date => {
+          const slots = perDay[date]
+            .sort((a,b) => a.time_from.localeCompare(b.time_from))
+            .map(s => {
+              const lbl = s.label ? ` – ${String(s.label).replace(/</g,'&lt;')}` : '';
+              return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:4px">
+                <span>${s.time_from}–${s.time_to}${lbl}</span>
+                <button class="btn danger" data-delblock="${s.id}" style="padding:2px 8px;font-size:11px">×</button>
+              </div>`;
+            }).join('');
+          const d = new Date(date + 'T00:00:00');
+          const nice = d.toLocaleDateString('fr-FR', { weekday:'short', day:'2-digit', month:'2-digit' });
+          return `<div class="card" style="padding:12px 14px;flex:0 1 260px;max-width:260px;min-width:220px;display:flex;flex-direction:column;align-items:center;text-align:center">
+            <strong>${nice}</strong>
+            ${slots}
+          </div>`;
+        }).join('');
+        return;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    // Fallback simple si la vue par jour rencontre un problème
+    root.innerHTML = blocks.map(b => {
+      const lbl = (b.label || '').trim ? ` – ${String(b.label).replace(/</g,'&lt;')}` : '';
+      return `<div class="card" style="padding:12px 14px;flex:0 1 260px;max-width:260px;min-width:220px;display:flex;flex-direction:column;align-items:center;text-align:center">
+        <strong>${b.date_from} → ${b.date_to}</strong>
+        <span style="margin-top:4px">${b.time_from}–${b.time_to}${lbl}</span>
+        <button class="btn danger" data-delblock="${b.id}" style="margin-top:6px;padding:2px 8px;font-size:11px">×</button>
+      </div>`;
+    }).join('');
   }catch(e){
     console.error(e);
-    root.innerHTML = '<p class="muted">Erreur lors du chargement des messages.</p>';
+    root.innerHTML = '<p class="muted">Erreur chargement.</p>';
   }
 }
 
-renderMessages();
+const toggleBlockFormBtn = document.getElementById('toggleBlockForm');
+const blockFormEl = document.getElementById('slotBlockForm');
+if(toggleBlockFormBtn && blockFormEl){
+  toggleBlockFormBtn.addEventListener('click', ()=>{
+    // Préremplir les dates à aujourd'hui si vides
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth()+1).padStart(2,'0');
+    const d = String(today.getDate()).padStart(2,'0');
+    const ymd = `${y}-${m}-${d}`;
+    const fromEl = document.getElementById('block-date-from');
+    const toEl = document.getElementById('block-date-to');
+    if(fromEl && !fromEl.value) fromEl.value = ymd;
+    if(toEl && !toEl.value) toEl.value = ymd;
 
-document.getElementById('messages').addEventListener('click', async (e)=>{
-  const btn = e.target.closest('[data-delmsg]');
-  if(!btn) return;
-  const id = btn.dataset.delmsg;
-  if(!confirm('Supprimer ce message ?')) return;
-  try{
-    const res = await fetch('/api/contact.php', {
-      method:'DELETE',
-      headers:{ 'Content-Type':'application/json' },
-      body: JSON.stringify({id})
-    });
-    const data = await res.json();
-    if(!res.ok || !data.ok){
-      flash('Erreur suppression', false);
+    const isHidden = window.getComputedStyle(blockFormEl).display === 'none';
+    blockFormEl.style.display = isHidden ? 'block' : 'none';
+  });
+}
+
+const blockAddBtn = document.getElementById('block-add');
+if(blockAddBtn){
+  blockAddBtn.addEventListener('click', async ()=>{
+    const dateFrom = document.getElementById('block-date-from').value;
+    const dateTo = document.getElementById('block-date-to').value;
+    const timeFrom = document.getElementById('block-time-from').value;
+    const timeTo = document.getElementById('block-time-to').value;
+    const label = document.getElementById('block-label').value.trim();
+    const msgEl = document.getElementById('blockMsg');
+    if(!dateFrom || !dateTo){
+      if(msgEl) msgEl.textContent = 'Renseignez les deux dates.';
       return;
     }
-    flash('Message supprimé ✅');
-    renderMessages();
-  }catch(err){
-    console.error(err);
-    flash('Erreur réseau', false);
-  }
-});
+    try{
+      const res = await fetch('/api/slot-blocks.php', {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify({ date_from: dateFrom, date_to: dateTo, time_from: timeFrom, time_to: timeTo, label: label || '' })
+      });
+      const data = await res.json();
+      if(!res.ok || !data.ok){
+        if(msgEl) msgEl.textContent = data.message || data.error || 'Erreur';
+        return;
+      }
+      if(msgEl) msgEl.textContent = '';
+      if(typeof flash === 'function') flash('Blocage ajouté ✅');
+      renderSlotBlocks();
+      document.getElementById('block-date-from').value = '';
+      document.getElementById('block-date-to').value = '';
+      document.getElementById('block-label').value = '';
+    }catch(err){
+      console.error(err);
+      if(msgEl) msgEl.textContent = 'Erreur réseau';
+    }
+  });
+}
+
+const slotBlocksListEl = document.getElementById('slotBlocksList');
+if(slotBlocksListEl){
+  slotBlocksListEl.addEventListener('click', async (e)=>{
+    const btn = e.target.closest('[data-delblock]');
+    if(!btn) return;
+    const id = parseInt(btn.dataset.delblock, 10);
+    // Double‑clic sécurisé façon "DA du site" : 1er clic -> demande de confirmation stylée, 2e clic -> suppression
+    if(btn.dataset.confirm !== '1'){
+      btn.dataset.confirm = '1';
+      const originalText = btn.textContent || '×';
+      btn.dataset.originalText = originalText;
+      btn.textContent = 'Confirmer';
+      setTimeout(()=>{
+        if(btn.dataset.confirm === '1'){
+          btn.dataset.confirm = '';
+          btn.textContent = btn.dataset.originalText || originalText;
+        }
+      }, 3000);
+      return;
+    }
+    btn.dataset.confirm = '';
+    btn.textContent = btn.dataset.originalText || '×';
+    try{
+      const res = await fetch('/api/slot-blocks.php', {
+        method:'DELETE',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify({ id })
+      });
+      const data = await res.json();
+      if(!res.ok || !data.ok){ flash('Erreur suppression', false); return; }
+      flash('Blocage supprimé ✅');
+      renderSlotBlocks();
+    }catch(err){
+      console.error(err);
+      flash('Erreur réseau', false);
+    }
+  });
+}
+
+renderSlotBlocks();
 
 })();
 </script>
